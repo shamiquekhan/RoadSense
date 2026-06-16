@@ -2,42 +2,42 @@
   "correlation_matrix": {
     "B_score": {
       "B_score": 1.0,
-      "SSS": 0.818
+      "SSS": 0.811
     },
     "SSS": {
-      "B_score": 0.818,
+      "B_score": 0.811,
       "SSS": 1.0
     }
   },
   "morans_i": {
-    "I": NaN,
+    "I": 0.669,
     "p_value": 0.001,
-    "z_score": NaN,
-    "n_segments": 100,
-    "interpretation": "Weak or non-significant spatial clustering."
+    "z_score": 64.7461,
+    "n_segments": 14384,
+    "interpretation": "Strong positive spatial clustering \u2014 high-risk segments cluster geographically."
   },
   "sensitivity": {},
   "sensitivity_note": "missing required columns",
   "tier_summary": {
     "Critical": {
-      "count": 25,
-      "pct": 25.0,
-      "km": 120.1
+      "count": 3840,
+      "pct": 26.7,
+      "km": 13045.3
     },
     "High": {
-      "count": 13,
-      "pct": 13.0,
-      "km": 57.0
+      "count": 2836,
+      "pct": 19.7,
+      "km": 16358.9
     },
     "Moderate": {
-      "count": 11,
-      "pct": 11.0,
-      "km": 55.9
+      "count": 3467,
+      "pct": 24.1,
+      "km": 27100.4
     },
     "Low": {
-      "count": 51,
-      "pct": 51.0,
-      "km": 219.2
+      "count": 4241,
+      "pct": 29.5,
+      "km": 39312.1
     }
   }
 }

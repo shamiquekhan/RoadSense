@@ -1,0 +1,165 @@
+
+<h2 class="sr-only">RoadSense Speed Safety Score — interactive Leaflet map with 41 road segments in Metro Manila classified as Critical, High, Medium, or Low risk</h2>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<div style="position:relative;height:600px;border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid var(--color-border-tertiary);">
+  <div id="map" style="height:600px;width:100%;"></div>
+  <div style="position:absolute;top:0;left:0;right:0;z-index:1000;background:rgba(8,10,24,.93);padding:7px 14px;display:flex;align-items:center;gap:10px;pointer-events:none;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;"></div>
+    <span style="color:#ddd;font-size:13px;font-weight:500;">RoadSense — Speed Safety Score</span>
+    <span style="margin-left:auto;color:#555;font-size:11px;" id="hdr">—</span>
+  </div>
+  <div style="position:absolute;top:44px;right:10px;z-index:900;background:rgba(8,10,24,.92);padding:10px 12px;border-radius:8px;min-width:170px;">
+    <div style="color:#666;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px;">Network summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:7px;">
+      <div style="text-align:center;background:rgba(226,75,74,.2);border-radius:5px;padding:5px 3px;">
+        <div id="nc" style="font-size:18px;font-weight:700;color:#E24B4A;">—</div>
+        <div style="font-size:9px;color:#555;">Critical</div>
+      </div>
+      <div style="text-align:center;background:rgba(239,159,39,.2);border-radius:5px;padding:5px 3px;">
+        <div id="nh" style="font-size:18px;font-weight:700;color:#EF9F27;">—</div>
+        <div style="font-size:9px;color:#555;">High</div>
+      </div>
+      <div style="text-align:center;background:rgba(151,196,89,.12);border-radius:5px;padding:5px 3px;">
+        <div id="nm" style="font-size:18px;font-weight:700;color:#97C459;">—</div>
+        <div style="font-size:9px;color:#555;">Medium</div>
+      </div>
+      <div style="text-align:center;background:rgba(93,202,165,.12);border-radius:5px;padding:5px 3px;">
+        <div id="nl" style="font-size:18px;font-weight:700;color:#5DCAA5;">—</div>
+        <div style="font-size:9px;color:#555;">Low</div>
+      </div>
+    </div>
+    <div id="sf" style="border-top:1px solid #1a1a28;padding-top:6px;color:#444;font-size:10px;line-height:1.4;">—</div>
+  </div>
+  <div style="position:absolute;bottom:22px;left:10px;z-index:900;background:rgba(8,10,24,.92);padding:10px 12px;border-radius:8px;min-width:184px;">
+    <div style="color:#666;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">Speed Safety Score</div>
+    <div style="display:flex;align-items:center;margin-bottom:5px;">
+      <span style="width:22px;height:5px;background:#E24B4A;border-radius:2px;margin-right:9px;flex-shrink:0;"></span>
+      <span style="color:#E24B4A;font-size:12px;font-weight:500;">Critical</span>
+      <span style="margin-left:auto;color:#444;font-size:10px;">0–24</span>
+    </div>
+    <div style="display:flex;align-items:center;margin-bottom:5px;">
+      <span style="width:22px;height:4px;background:#EF9F27;border-radius:2px;margin-right:9px;flex-shrink:0;"></span>
+      <span style="color:#EF9F27;font-size:12px;font-weight:500;">High risk</span>
+      <span style="margin-left:auto;color:#444;font-size:10px;">25–49</span>
+    </div>
+    <div style="display:flex;align-items:center;margin-bottom:5px;">
+      <span style="width:22px;height:3px;background:#97C459;border-radius:2px;margin-right:9px;flex-shrink:0;"></span>
+      <span style="color:#97C459;font-size:12px;font-weight:500;">Medium</span>
+      <span style="margin-left:auto;color:#444;font-size:10px;">50–74</span>
+    </div>
+    <div style="display:flex;align-items:center;margin-bottom:9px;">
+      <span style="width:22px;height:2px;background:#5DCAA5;border-radius:2px;margin-right:9px;flex-shrink:0;"></span>
+      <span style="color:#5DCAA5;font-size:12px;font-weight:500;">Low risk</span>
+      <span style="margin-left:auto;color:#444;font-size:10px;">75–100</span>
+    </div>
+    <div style="border-top:1px solid #1a1a28;padding-top:6px;color:#444;font-size:10px;line-height:1.5;">
+      ⬛ 1–10 = top priority segments<br>Click any road for full detail
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const roads=[
+  {n:"EDSA Northbound (Ortigas–Quezon Ave)",r:"National Hwy",p:80,o:94,s:50,a:8,b:14,c:28,km:2.3,coords:[[14.5847,121.0564],[14.5890,121.0563],[14.5930,121.0563],[14.5970,121.0557]]},
+  {n:"Aurora Blvd (Legarda–Cubao)",r:"National Hwy",p:60,o:76,s:50,a:15,b:12,c:30,km:3.1,coords:[[14.6012,121.0102],[14.6010,121.0200],[14.6007,121.0310],[14.6005,121.0400]]},
+  {n:"Commonwealth Ave (Section 1)",r:"National Hwy",p:80,o:97,s:60,a:6,b:18,c:22,km:1.8,coords:[[14.6320,121.0530],[14.6360,121.0510],[14.6400,121.0492],[14.6440,121.0462]]},
+  {n:"Quirino Hwy (Novaliches)",r:"National Hwy",p:80,o:88,s:60,a:20,b:10,c:18,km:1.5,coords:[[14.6980,121.0150],[14.6960,121.0220],[14.6940,121.0290]]},
+  {n:"España Blvd (UST Vicinity)",r:"Arterial",p:60,o:68,s:30,a:14,b:8,c:25,km:0.9,coords:[[14.6092,120.9892],[14.6090,120.9960],[14.6088,121.0010]]},
+  {n:"South Luzon Expressway Approach",r:"National Hwy",p:100,o:108,s:60,a:5,b:8,c:35,km:1.2,coords:[[14.4650,121.0240],[14.4700,121.0245],[14.4750,121.0248]]},
+  {n:"Katipunan Ave (C-5 North)",r:"Arterial",p:60,o:70,s:50,a:32,b:35,c:55,km:1.4,coords:[[14.6380,121.0779],[14.6350,121.0775],[14.6320,121.0770]]},
+  {n:"Quezon Ave (Elliptical–Welcome Rotonda)",r:"Arterial",p:60,o:65,s:50,a:38,b:28,c:48,km:1.9,coords:[[14.6528,121.0400],[14.6500,121.0390],[14.6470,121.0378],[14.6440,121.0365]]},
+  {n:"Mindanao Ave (Ring Road)",r:"Arterial",p:60,o:66,s:50,a:40,b:42,c:38,km:1.7,coords:[[14.6750,121.0100],[14.6740,121.0180],[14.6730,121.0260]]},
+  {n:"East Ave (Medical Center)",r:"Arterial",p:50,o:58,s:30,a:30,b:22,c:50,km:0.8,coords:[[14.6480,121.0340],[14.6460,121.0350],[14.6440,121.0360]]},
+  {n:"North Ave (SM–Trinoma)",r:"Arterial",p:50,o:60,s:30,a:28,b:38,c:45,km:1.1,coords:[[14.6560,121.0320],[14.6550,121.0380],[14.6542,121.0440]]},
+  {n:"C-5 (Libis–Eastwood)",r:"Arterial",p:60,o:72,s:50,a:22,b:48,c:52,km:0.9,coords:[[14.5960,121.0720],[14.5950,121.0760],[14.5938,121.0800]]},
+  {n:"Marcos Hwy (Marikina)",r:"Arterial",p:60,o:68,s:50,a:35,b:35,c:40,km:1.0,coords:[[14.6230,121.0850],[14.6200,121.0870],[14.6170,121.0890]]},
+  {n:"Visayas Ave (North)",r:"Arterial",p:60,o:62,s:50,a:45,b:30,c:42,km:1.3,coords:[[14.6620,121.0200],[14.6600,121.0260],[14.6580,121.0320]]},
+  {n:"Alabang-Zapote Rd (Market Zone)",r:"Collector",p:50,o:57,s:30,a:40,b:20,c:44,km:0.7,coords:[[14.4220,121.0290],[14.4200,121.0320],[14.4185,121.0350]]},
+  {n:"Malabon-Navotas Rd",r:"Collector",p:50,o:58,s:40,a:42,b:30,c:48,km:1.1,coords:[[14.6600,120.9650],[14.6590,120.9700],[14.6580,120.9750]]},
+  {n:"Tomas Morato Ave",r:"Collector",p:40,o:46,s:30,a:55,b:52,c:62,km:0.9,coords:[[14.6380,121.0254],[14.6360,121.0258],[14.6340,121.0262],[14.6320,121.0266]]},
+  {n:"Katipunan Ave (near Ateneo)",r:"Collector",p:40,o:45,s:30,a:58,b:48,c:68,km:0.7,coords:[[14.6400,121.0780],[14.6420,121.0775],[14.6440,121.0768]]},
+  {n:"Timog Ave",r:"Collector",p:40,o:44,s:30,a:62,b:55,c:58,km:1.0,coords:[[14.6352,121.0280],[14.6348,121.0330],[14.6344,121.0380]]},
+  {n:"Mother Ignacia Ave",r:"Collector",p:30,o:38,s:30,a:65,b:60,c:55,km:0.8,coords:[[14.6332,121.0244],[14.6338,121.0280],[14.6344,121.0320]]},
+  {n:"Congressional Ave (South)",r:"Collector",p:50,o:53,s:40,a:60,b:65,c:58,km:0.9,coords:[[14.6600,121.0440],[14.6580,121.0458],[14.6560,121.0476]]},
+  {n:"Agham Road",r:"Collector",p:50,o:55,s:40,a:55,b:68,c:60,km:0.7,coords:[[14.6578,121.0362],[14.6565,121.0372],[14.6550,121.0382]]},
+  {n:"Amoranto Ave",r:"Collector",p:40,o:45,s:30,a:52,b:65,c:62,km:0.7,coords:[[14.6283,121.0088],[14.6295,121.0115],[14.6308,121.0138]]},
+  {n:"UP Diliman Inner Road",r:"Local",p:30,o:34,s:30,a:72,b:55,c:70,km:0.5,coords:[[14.6548,121.0652],[14.6538,121.0672],[14.6528,121.0692]]},
+  {n:"Scout Reyes / Scout Barretto",r:"Local",p:30,o:35,s:30,a:70,b:62,c:65,km:0.6,coords:[[14.6320,121.0230],[14.6318,121.0262],[14.6316,121.0296]]},
+  {n:"Mayon St (Sta. Mesa)",r:"Local",p:30,o:33,s:30,a:72,b:62,c:68,km:0.5,coords:[[14.6052,121.0092],[14.6040,121.0122],[14.6030,121.0148]]},
+  {n:"Examiner St",r:"Local",p:30,o:36,s:30,a:58,b:70,c:72,km:0.4,coords:[[14.6415,121.0162],[14.6408,121.0186],[14.6402,121.0212]]},
+  {n:"Matalino St (Diliman)",r:"Local",p:30,o:32,s:30,a:74,b:68,c:72,km:0.4,coords:[[14.6482,121.0530],[14.6470,121.0548],[14.6460,121.0564]]},
+  {n:"Roces Ave",r:"Collector",p:40,o:42,s:30,a:68,b:58,c:62,km:0.7,coords:[[14.6378,121.0138],[14.6362,121.0168],[14.6348,121.0200]]},
+  {n:"Domingo Guevara St",r:"Local",p:30,o:35,s:30,a:65,b:60,c:70,km:0.5,coords:[[14.5818,121.0618],[14.5822,121.0648],[14.5826,121.0680]]},
+  {n:"Banawe Ave (Residential)",r:"Local",p:30,o:29,s:30,a:82,b:78,c:88,km:0.6,coords:[[14.6262,121.0014],[14.6268,121.0042],[14.6274,121.0072]]},
+  {n:"Maginhawa St (Teacher's Village)",r:"Local",p:30,o:28,s:30,a:88,b:82,c:85,km:0.5,coords:[[14.6494,121.0574],[14.6480,121.0586],[14.6468,121.0598]]},
+  {n:"Sikatuna Village Rd",r:"Local",p:30,o:27,s:30,a:90,b:85,c:82,km:0.4,coords:[[14.6445,121.0482],[14.6435,121.0495],[14.6425,121.0510]]},
+  {n:"West Ave (Subdiv.)",r:"Local",p:30,o:31,s:30,a:78,b:80,c:86,km:0.5,coords:[[14.6500,121.0240],[14.6490,121.0252],[14.6480,121.0264]]},
+  {n:"Pinyahan St (School Zone)",r:"Local",p:30,o:26,s:30,a:92,b:88,c:84,km:0.3,coords:[[14.6358,121.0472],[14.6348,121.0488],[14.6338,121.0502]]},
+  {n:"Laging Handa St",r:"Local",p:30,o:28,s:30,a:85,b:82,c:80,km:0.4,coords:[[14.6344,121.0148],[14.6338,121.0170],[14.6332,121.0192]]},
+  {n:"Kamias Rd (Zone 5)",r:"Local",p:30,o:30,s:30,a:80,b:76,c:82,km:0.4,coords:[[14.6375,121.0560],[14.6362,121.0570],[14.6350,121.0582]]},
+  {n:"Tandang Sora Residential",r:"Local",p:30,o:28,s:30,a:86,b:79,c:88,km:0.4,coords:[[14.6752,121.0520],[14.6742,121.0535],[14.6732,121.0550]]},
+  {n:"Banahaw St (Subdiv.)",r:"Local",p:30,o:25,s:30,a:94,b:90,c:86,km:0.3,coords:[[14.6522,121.0320],[14.6514,121.0332],[14.6506,121.0344]]},
+  {n:"Kalayaan Ave (QC)",r:"Local",p:30,o:32,s:30,a:78,b:62,c:66,km:0.4,coords:[[14.6440,121.0440],[14.6432,121.0456],[14.6424,121.0472]]},
+  {n:"Bayanihan Pl",r:"Local",p:30,o:27,s:30,a:86,b:84,c:88,km:0.3,coords:[[14.6410,121.0330],[14.6402,121.0346],[14.6394,121.0362]]},
+];
+roads.forEach(r=>{
+  r.score=Math.round(0.40*r.a+0.35*r.b+0.25*r.c);
+  r.tier=r.score<25?"Critical":r.score<50?"High":r.score<75?"Medium":"Low";
+});
+const T={
+  Critical:{color:"#E24B4A",weight:6,opacity:.95},
+  High:{color:"#EF9F27",weight:4,opacity:.85},
+  Medium:{color:"#97C459",weight:3,opacity:.72},
+  Low:{color:"#5DCAA5",weight:2,opacity:.55},
+};
+const map=L.map("map",{center:[14.595,121.032],zoom:12,zoomControl:true});
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+  attribution:'&copy; CARTO &copy; OSM',subdomains:"abcd",maxZoom:20
+}).addTo(map);
+["Low","Medium","High","Critical"].forEach(tier=>{
+  roads.filter(r=>r.tier===tier).forEach(r=>{
+    const cfg=T[tier];
+    const line=L.polyline(r.coords,{color:cfg.color,weight:cfg.weight,opacity:cfg.opacity,lineCap:"round",lineJoin:"round"});
+    line.on("mouseover",function(){this.setStyle({weight:cfg.weight+2,opacity:1});});
+    line.on("mouseout",function(){this.setStyle({weight:cfg.weight,opacity:cfg.opacity});});
+    const alert=tier==="Critical"?`<div style="margin-top:7px;padding:4px 8px;background:#fdecea;border-radius:4px;color:#c0392b;font-size:11px;">⚠ Speed limit review recommended</div>`:"";
+    line.bindPopup(`
+      <div style="font-family:system-ui,sans-serif;font-size:12px;min-width:228px;line-height:1.5;">
+        <div style="border-left:3px solid ${cfg.color};padding:6px 9px;background:${cfg.color}15;margin-bottom:8px;">
+          <span style="color:${cfg.color};font-weight:700;font-size:13px;">${tier}</span>
+          <span style="float:right;font-size:20px;font-weight:800;color:${cfg.color};">${r.score}</span>
+          <div style="font-size:11px;color:#666;margin-top:2px;">${r.n}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr><td style="color:#888;padding:2px 0;">Road class</td><td style="text-align:right;font-weight:500;color:#222;">${r.r}</td></tr>
+          <tr><td style="color:#888;padding:2px 0;">Posted limit</td><td style="text-align:right;font-weight:500;color:#222;">${r.p} km/h</td></tr>
+          <tr><td style="color:#888;padding:2px 0;">85th pct speed</td><td style="text-align:right;font-weight:500;color:${r.o>r.p?"#c0392b":"#27ae60"};">${r.o} km/h${r.o>r.p?" ▲":""}</td></tr>
+          <tr><td style="color:#888;padding:2px 0;">Safe System limit</td><td style="text-align:right;color:#222;">${r.s} km/h</td></tr>
+          <tr><td colspan="2" style="padding-top:5px;border-top:1px solid #f0f0f0;"></td></tr>
+          <tr><td style="color:#888;padding:2px 0;">Speed alignment (A)</td><td style="text-align:right;color:#333;">${r.a}/100</td></tr>
+          <tr><td style="color:#888;padding:2px 0;">VRU exposure (B)</td><td style="text-align:right;color:#333;">${r.b}/100</td></tr>
+          <tr><td style="color:#888;padding:2px 0;">Infrastructure (C)</td><td style="text-align:right;color:#333;">${r.c}/100</td></tr>
+        </table>${alert}
+      </div>`,{maxWidth:270});
+    line.bindTooltip(`<b>${r.n}</b><br>Score: ${r.score} (${tier})`,{sticky:true,opacity:.9,direction:"top"});
+    line.addTo(map);
+  });
+});
+[...roads].sort((a,b)=>a.score-b.score).slice(0,10).forEach((r,i)=>{
+  const mid=r.coords[Math.floor(r.coords.length/2)];
+  L.marker(mid,{
+    icon:L.divIcon({
+      html:`<div style="width:22px;height:22px;border-radius:50%;background:#E24B4A;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.8);box-shadow:0 2px 6px rgba(0,0,0,.6);">${i+1}</div>`,
+      iconSize:[22,22],iconAnchor:[11,11],className:""
+    }),zIndexOffset:2000
+  }).bindTooltip(`#${i+1} — ${r.n} (Score: ${r.score})`,{opacity:.9}).addTo(map);
+});
+const cnt={Critical:0,High:0,Medium:0,Low:0};let km=0;
+roads.forEach(r=>{cnt[r.tier]++;km+=r.km;});
+document.getElementById("nc").textContent=cnt.Critical;
+document.getElementById("nh").textContent=cnt.High;
+document.getElementById("nm").textContent=cnt.Medium;
+document.getElementById("nl").textContent=cnt.Low;
+document.getElementById("sf").textContent=`${km.toFixed(0)} km · ${((cnt.Critical/roads.length)*100).toFixed(0)}% flagged for review`;
+document.getElementById("hdr").textContent=`${roads.length} segments · Metro Manila pilot`;
+</script>

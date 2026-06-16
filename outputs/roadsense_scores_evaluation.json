@@ -2,35 +2,35 @@
   "correlation_matrix": {
     "A_score": {
       "A_score": 1.0,
-      "B_score": 0.823,
-      "C_score": 0.463,
-      "SSS": 0.899
+      "B_score": 0.901,
+      "C_score": 0.492,
+      "SSS": 0.961
     },
     "B_score": {
-      "A_score": 0.823,
+      "A_score": 0.901,
       "B_score": 1.0,
-      "C_score": 0.759,
-      "SSS": 0.957
+      "C_score": 0.679,
+      "SSS": 0.966
     },
     "C_score": {
-      "A_score": 0.463,
-      "B_score": 0.759,
+      "A_score": 0.492,
+      "B_score": 0.679,
       "C_score": 1.0,
-      "SSS": 0.769
+      "SSS": 0.685
     },
     "SSS": {
-      "A_score": 0.899,
-      "B_score": 0.957,
-      "C_score": 0.769,
+      "A_score": 0.961,
+      "B_score": 0.966,
+      "C_score": 0.685,
       "SSS": 1.0
     }
   },
   "morans_i": {
-    "I": NaN,
+    "I": 0.6216,
     "p_value": 0.001,
-    "z_score": NaN,
-    "n_segments": 100,
-    "interpretation": "Weak or non-significant spatial clustering."
+    "z_score": 63.238,
+    "n_segments": 14384,
+    "interpretation": "Strong positive spatial clustering \u2014 high-risk segments cluster geographically."
   },
   "sensitivity": {
     "results": [
@@ -44,43 +44,43 @@
       },
       {
         "perturbation": "module_b x1.20",
-        "top_n_stability": 1.0
+        "top_n_stability": 0.99
       },
       {
         "perturbation": "module_b x0.80",
-        "top_n_stability": 1.0
+        "top_n_stability": 0.93
       },
       {
         "perturbation": "module_c x1.20",
-        "top_n_stability": 1.0
+        "top_n_stability": 0.93
       },
       {
         "perturbation": "module_c x0.80",
-        "top_n_stability": 1.0
+        "top_n_stability": 0.99
       }
     ],
-    "mean_stability": 1.0
+    "mean_stability": 0.973
   },
   "tier_summary": {
     "Critical": {
-      "count": 16,
-      "pct": 16.0,
-      "km": 72.7
+      "count": 3237,
+      "pct": 22.5,
+      "km": 8050.5
     },
     "High": {
-      "count": 19,
-      "pct": 19.0,
-      "km": 89.8
+      "count": 2711,
+      "pct": 18.8,
+      "km": 11475.4
     },
     "Moderate": {
-      "count": 17,
-      "pct": 17.0,
-      "km": 91.0
+      "count": 5188,
+      "pct": 36.1,
+      "km": 42369.0
     },
     "Low": {
-      "count": 48,
-      "pct": 48.0,
-      "km": 198.6
+      "count": 3248,
+      "pct": 22.6,
+      "km": 33921.8
     }
   }
 }

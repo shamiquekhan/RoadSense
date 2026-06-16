@@ -1,4 +1,4 @@
-"""ADB challenge data loader — handles GeoJSON loading, cleaning, and schema mapping."""
+"""ADB challenge data loader — handles GeoJSON/GPKG loading, cleaning, and schema mapping."""
 
 from __future__ import annotations
 
@@ -18,23 +18,58 @@ from roadsense.config import (
 )
 
 MASTER_CRS = "EPSG:4326"
-ADB_FILES: dict[str, str] = {
-    "Thailand": "ADB_Innovation_Thailand.geojson",
-    "Maharashtra": "ADB_Innovation_Maharashtra.geojson",
+ADB_FILES: dict[str, dict[str, str | None]] = {
+    "Thailand": {
+        "path": "Road_Safety_Performance_Indicators__Thailand_(Feature).gpkg",
+        "layer": "ADB_Results_D4",
+    },
+    "Maharashtra": {
+        "path": "Road_Safety_Performance_Indicators__Maharashtra_(Feature).gpkg",
+        "layer": "OvertureNetwork_wResults",
+    },
 }
 
 
 def load_adb_datasets(data_dir: str | Path | None = None) -> gpd.GeoDataFrame:
-    """Load and merge ADB GeoJSON datasets for both regions."""
+    """Load and merge ADB GeoPackage datasets for both regions.
+
+    Tries the primary GPKG path first (real challenge data).
+    Falls back to the original GeoJSON files (sample data).
+    """
     data_dir = Path(data_dir) if data_dir else RAW_DATA_DIR
+    # Real data is in the archive subdirectory
+    archive_dir = data_dir / ".." / "Archive-20260531T145050Z-3-001" / "Archive"
 
     gdfs: list[gpd.GeoDataFrame] = []
-    for region, filename in ADB_FILES.items():
-        path = data_dir / filename
-        if not path.exists():
-            logger.warning(f"Missing ADB data file: {path}")
-            continue
-        gdf = gpd.read_file(path)
+    for region, info in ADB_FILES.items():
+        path: Path | None = None
+        layer: str | None = None
+
+        # Try archive directory
+        ap = (archive_dir / info["path"]).resolve()
+        if ap.exists():
+            path = ap
+            layer = info["layer"]
+        else:
+            # Fallback to data_dir with original naming
+            legacy_name = f"ADB_Innovation_{region}.geojson"
+            lp = (data_dir / legacy_name).resolve()
+            if lp.exists():
+                path = lp
+                logger.info(f"  {region}: using sample GeoJSON (not real challenge data)")
+            else:
+                logger.warning(f"Missing ADB data file for {region}")
+                continue
+
+        kwargs = {}
+        if layer:
+            kwargs["layer"] = layer
+        gdf = gpd.read_file(str(path), **kwargs)
+
+        # Reproject to WGS84 if needed
+        if gdf.crs and gdf.crs.is_projected:
+            gdf = gdf.to_crs(MASTER_CRS)
+
         gdf["region"] = region
         gdf = _normalise_road_name(gdf)
         gdf = _assign_segment_id(gdf)
@@ -77,6 +112,19 @@ def _merge_datasets(gdfs: list[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
     return merged
 
 
+def _ensure_shape_length(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Ensure Shape_Length column exists (may be RoadLength in some datasets)."""
+    if "Shape_Length" in df.columns:
+        return df
+    if "RoadLength" in df.columns:
+        df["Shape_Length"] = df["RoadLength"]
+        return df
+    # Compute from geometry in a projected CRS
+    utm = df.estimate_utm_crs()
+    df["Shape_Length"] = df.to_crs(utm).geometry.length
+    return df
+
+
 def clean_adb(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Filter invalid records, impute missing values, fix dtypes."""
     df = df.copy()
@@ -98,6 +146,7 @@ def clean_adb(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     df = _fix_string_columns(df)
     df = _fix_speed_limit(df)
     df = _clip_bounded_fields(df)
+    df = _ensure_shape_length(df)
 
     df.dropna(subset=["MedianSpeed", "F85thPercentileSpeed", "PercentOverLimit"], inplace=True)
 
@@ -158,6 +207,8 @@ def map_to_roadsense_schema(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     if "Shape_Length" in df.columns:
         df["length_m"] = df["Shape_Length"]
+    elif "RoadLength" in df.columns:
+        df["length_m"] = df["RoadLength"]
     else:
         utm = df.estimate_utm_crs()
         df["length_m"] = df.to_crs(utm).geometry.length
