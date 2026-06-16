@@ -4,6 +4,8 @@ RoadSense is an AI-powered road safety analytics platform that checks whether po
 
 The score blends three signals: how far the posted limit deviates from observed operating speed, how exposed vulnerable road users are at that location, and what the physical road environment looks like on the ground. Each segment is classified into four risk tiers: Critical, High, Medium, and Low, with plain-language explanations designed for transport ministries and other non-technical decision-makers.
 
+> **Interactive maps (GitHub Pages):** [4-Component Map](https://shamiquekhan.github.io/RoadSense/4component_map.html) · [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_map.html) · [Landing Page](https://shamiquekhan.github.io/RoadSense/)
+
 ## Pipeline Overview
 
 ![RoadSense pipeline overview](docs/architecture.svg)
