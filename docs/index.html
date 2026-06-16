@@ -50,55 +50,23 @@
       letter-spacing: -0.06px; text-decoration: none; transition: color 0.15s;
     }
     .global-nav-links a:hover { color: #ffffff; text-decoration: none; }
-    .global-nav-actions { display: flex; align-items: center; gap: 12px; }
+    .global-nav-actions { display: flex; align-items: center; gap: 20px; }
     .global-nav-actions a {
-      display: inline-flex; align-items: center;
-      font-size: 12px; font-weight: 400; letter-spacing: -0.06px;
-      padding: 5px 14px; border-radius: 8px; text-decoration: none; transition: all 0.15s;
+      color: #cccccc; font-size: 12px; font-weight: 400;
+      letter-spacing: -0.06px; text-decoration: none; transition: color 0.15s;
     }
-    .global-nav-actions a.gh-link {
-      background: #1d1d1f; color: #f5f5f7;
-    }
-    .global-nav-actions a.gh-link:hover { background: #2d2d2f; text-decoration: none; }
-
-    /* -- Sub Nav -- */
-    .sub-nav {
-      position: fixed; top: 44px; left: 0; right: 0; z-index: 99;
-      height: 52px;
-      background: rgba(245, 245, 247, 0.92);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 0 24px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-    .sub-nav-inner {
-      width: 100%; max-width: 1068px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .sub-nav-title {
-      font-size: 21px; font-weight: 600; line-height: 1.19;
-      letter-spacing: 0.231px; color: #1d1d1f;
-    }
-    .sub-nav-links {
-      display: flex; align-items: center; gap: 24px;
-    }
-    .sub-nav-links a {
-      font-size: 12px; font-weight: 400; line-height: 1.29;
-      letter-spacing: -0.06px; color: #333333; text-decoration: none; transition: color 0.15s;
-    }
-    .sub-nav-links a:hover { color: #0066cc; text-decoration: none; }
-    .sub-nav-cta {
+    .global-nav-actions a:hover { color: #ffffff; text-decoration: none; }
+    .global-nav-cta {
       display: inline-flex; align-items: center;
       background: #0066cc; color: #ffffff;
       font-size: 12px; font-weight: 400; line-height: 1;
       letter-spacing: -0.06px;
       padding: 6px 16px; border-radius: 9999px; text-decoration: none; transition: opacity 0.2s;
     }
-    .sub-nav-cta:hover { opacity: 0.85; text-decoration: none; }
-    .sub-nav-cta:active { transform: scale(0.95); }
+    .global-nav-cta:hover { opacity: 0.85; text-decoration: none; }
+    .global-nav-cta:active { transform: scale(0.95); }
 
-    body { padding-top: 96px; }
+    body { padding-top: 44px; }
 
     /* -- Tiles -- */
     .tile { padding: 80px 24px; }
@@ -233,7 +201,6 @@
       background: #272729; border: 1px solid #3a3a3c;
       border-radius: 18px; padding: 24px;
     }
-    .card-icon { display: block; margin-bottom: 12px; }
     .card-title {
       font-size: 17px; font-weight: 600; line-height: 1.24;
       letter-spacing: -0.374px; margin-bottom: 6px;
@@ -313,11 +280,8 @@
     }
 
     /* -- Responsive -- */
-    @media (max-width: 1068px) {
-      .sub-nav-links { display: none; }
-    }
     @media (max-width: 833px) {
-      .global-nav-links { display: none; }
+      .global-nav-actions a:not(.global-nav-cta) { display: none; }
       .hero-display { font-size: 40px; }
       .hero-lead { font-size: 24px; }
       .display-lg { font-size: 34px; }
@@ -359,25 +323,14 @@
         <a href="#docs">Documentation</a>
       </div>
       <div class="global-nav-actions">
-        <a href="https://github.com/shamiquekhan/RoadSense" class="gh-link" target="_blank" rel="noopener">GitHub</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Sub Nav -->
-  <div class="sub-nav">
-    <div class="sub-nav-inner">
-      <span class="sub-nav-title">RoadSense</span>
-      <div class="sub-nav-links">
-        <a href="#about">About</a>
         <a href="#results">Results</a>
         <a href="#methodology">Methodology</a>
         <a href="#maps">Maps</a>
-        <a href="#docs">Documentation</a>
+        <a href="#docs">Docs</a>
+        <a href="https://github.com/shamiquekhan/RoadSense" class="global-nav-cta" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <a href="https://github.com/shamiquekhan/RoadSense" class="sub-nav-cta" target="_blank" rel="noopener">View on GitHub</a>
     </div>
-  </div>
+  </nav>
 
   <!-- Hero -->
   <section class="tile tile-dark hero-tile">
@@ -407,18 +360,15 @@
       </p>
       <div class="card-grid card-grid-3">
         <div class="card">
-          <div class="card-icon" style="font-size:32px;">&#8593;</div>
-          <h3 class="card-title">Speed alignment</h3>
+            <h3 class="card-title">Speed alignment</h3>
           <p class="card-body">Compares posted speed limits and 85th percentile operating speeds against WHO/ITF Safe System reference speeds for each road class and land use context.</p>
         </div>
         <div class="card">
-          <div class="card-icon" style="font-size:32px;">&#9782;</div>
-          <h3 class="card-title">VRU exposure</h3>
+            <h3 class="card-title">VRU exposure</h3>
           <p class="card-body">Estimates pedestrian fatality risk using the ITF logistic curve, adjusted by road class, land use, and proximity to schools, markets, and high-ptw zones.</p>
         </div>
         <div class="card">
-          <div class="card-icon" style="font-size:32px;">&#9728;</div>
-          <h3 class="card-title">Road environment</h3>
+            <h3 class="card-title">Road environment</h3>
           <p class="card-body">Evaluates protective infrastructure using Mapillary detections or a CLIP zero-shot fallback&mdash;critical for countries with sparse street-level imagery.</p>
         </div>
       </div>
@@ -619,18 +569,15 @@
       </p>
       <div class="card-grid card-grid-3">
         <div class="card">
-          <div class="card-icon" style="font-size:28px;">&#127758;</div>
-          <h3 class="card-title">Any country</h3>
+            <h3 class="card-title">Any country</h3>
           <p class="card-body">OSM road network and Overpass API provide global coverage. The CLIP imagery fallback works even where Mapillary has no data.</p>
         </div>
         <div class="card">
-          <div class="card-icon" style="font-size:28px;">&#128200;</div>
-          <h3 class="card-title">Minimal inputs</h3>
+            <h3 class="card-title">Minimal inputs</h3>
           <p class="card-body">Minimum viable deployment: OSM roads + speed limit tags + 50 spot-speed measurements. No crash history needed&mdash;this is a preventive model.</p>
         </div>
         <div class="card">
-          <div class="card-icon" style="font-size:28px;">&#128214;</div>
-          <h3 class="card-title">Open source</h3>
+            <h3 class="card-title">Open source</h3>
           <p class="card-body">MIT-licensed. Config-driven scoring weights, Makefile automation, CI via GitHub Actions. Run it quarterly to track changes.</p>
         </div>
       </div>
