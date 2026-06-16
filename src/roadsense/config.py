@@ -49,14 +49,14 @@ INFRA_GAP_MAP: dict[tuple[str, str], float] = {
     ("secondary", "rural"): 0.65,
 }
 
-# Priority tier thresholds
+# Priority tier thresholds — iRAP-aligned color scheme
 PRIORITY_THRESHOLDS: list[tuple[float, str, str]] = [
-    (0.65, "Critical — Immediate Review", "#d32f2f"),
-    (0.45, "High — Priority Review", "#f57c00"),
-    (0.25, "Moderate — Scheduled Review", "#fbc02d"),
+    (0.65, "Critical — Immediate Review", "#E24B4A"),
+    (0.45, "High — Priority Review", "#EF9F27"),
+    (0.25, "Moderate — Scheduled Review", "#97C459"),
 ]
 
-PRIORITY_DEFAULT: tuple[str, str] = ("Low — Monitor", "#388e3c")
+PRIORITY_DEFAULT: tuple[str, str] = ("Low — Monitor", "#5DCAA5")
 
 # RoadSense 3-module approach weights
 MODULE_WEIGHTS: dict[str, float] = {

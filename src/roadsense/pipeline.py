@@ -292,6 +292,7 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
             "functional_class", "urban_rural",
             "A_score", "B_score", "C_score", "SSS", "risk_tier",
             "reliability_tier", "reliability_colour",
+            "Shape_Length", "length_m",
         ]
         viz_avail = [c for c in viz_cols if c in df.columns]
         geojson_path = out_dir / f"{prefix}.geojson"

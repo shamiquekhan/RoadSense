@@ -39,5 +39,71 @@
       "pct": 51.0,
       "km": 219.2
     }
+  },
+  "weight_sensitivity": {
+    "limit_misalignment x0.80": {
+      "weights": {
+        "limit_misalignment": 0.2553191489361702,
+        "operating_speed": 0.3191489361702128,
+        "vru_exposure": 0.26595744680851063,
+        "volume": 0.1595744680851064
+      }
+    },
+    "limit_misalignment x1.20": {
+      "weights": {
+        "limit_misalignment": 0.33962264150943394,
+        "operating_speed": 0.2830188679245283,
+        "vru_exposure": 0.23584905660377356,
+        "volume": 0.14150943396226415
+      }
+    },
+    "operating_speed x0.80": {
+      "weights": {
+        "limit_misalignment": 0.3191489361702128,
+        "operating_speed": 0.2553191489361702,
+        "vru_exposure": 0.26595744680851063,
+        "volume": 0.1595744680851064
+      }
+    },
+    "operating_speed x1.20": {
+      "weights": {
+        "limit_misalignment": 0.2830188679245283,
+        "operating_speed": 0.33962264150943394,
+        "vru_exposure": 0.23584905660377356,
+        "volume": 0.14150943396226415
+      }
+    },
+    "vru_exposure x0.80": {
+      "weights": {
+        "limit_misalignment": 0.3157894736842105,
+        "operating_speed": 0.3157894736842105,
+        "vru_exposure": 0.2105263157894737,
+        "volume": 0.15789473684210525
+      }
+    },
+    "vru_exposure x1.20": {
+      "weights": {
+        "limit_misalignment": 0.2857142857142857,
+        "operating_speed": 0.2857142857142857,
+        "vru_exposure": 0.2857142857142857,
+        "volume": 0.14285714285714285
+      }
+    },
+    "volume x0.80": {
+      "weights": {
+        "limit_misalignment": 0.30927835051546393,
+        "operating_speed": 0.30927835051546393,
+        "vru_exposure": 0.2577319587628866,
+        "volume": 0.12371134020618557
+      }
+    },
+    "volume x1.20": {
+      "weights": {
+        "limit_misalignment": 0.2912621359223301,
+        "operating_speed": 0.2912621359223301,
+        "vru_exposure": 0.24271844660194175,
+        "volume": 0.17475728155339804
+      }
+    }
   }
 }

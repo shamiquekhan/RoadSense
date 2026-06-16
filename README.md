@@ -4,7 +4,7 @@ RoadSense is an AI-powered road safety analytics platform that checks whether po
 
 The score blends three signals: how far the posted limit deviates from observed operating speed, how exposed vulnerable road users are at that location, and what the physical road environment looks like on the ground. Each segment is classified into four risk tiers: Critical, High, Medium, and Low, with plain-language explanations designed for transport ministries and other non-technical decision-makers.
 
-> **Interactive maps (GitHub Pages):** [4-Component Map](https://shamiquekhan.github.io/RoadSense/4component_map.html) · [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_map.html) · [Landing Page](https://shamiquekhan.github.io/RoadSense/)
+> **Interactive maps (GitHub Pages):** [4-Component Map](https://shamiquekhan.github.io/RoadSense/speed_safety_scores_map.html) · [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_scores_map.html) · [Landing Page](https://shamiquekhan.github.io/RoadSense/)
 
 ## Pipeline Overview
 
@@ -84,6 +84,15 @@ python run_pipeline.py --approach 4component
 # RoadSense 3-module score only
 python run_pipeline.py --approach roadsense
 
+# Policy scenario: prioritise pedestrian safety
+python run_pipeline.py --approach both --policy pedestrian-first
+
+# Custom weight profile
+python run_pipeline.py --approach 4component --weights '{"vru_exposure": 0.40, "operating_speed": 0.25, "limit_misalignment": 0.20, "volume": 0.15}'
+
+# Spatial imputation for low-sample segments
+python run_pipeline.py --approach both --impute-low-sample
+
 # Include OSM enrichment (schools, markets) via Overpass API
 python run_pipeline.py --approach 4component --osm
 
@@ -109,15 +118,19 @@ Outputs are written to `outputs/`:
 | File | Description |
 |---|---|
 | `speed_safety_scores.csv` | 4-component scored segments (tabular) |
-| `speed_safety_scores.gpkg` | 4-component scored segments (geospatial) |
+| `speed_safety_scores.gpkg` | 4-component scored segments (geospatial, ESRI-ready) |
+| `speed_safety_scores.geojson` | 4-component scored segments (lightweight web) |
 | `speed_safety_scores_map.html` | Interactive folium map for 4-component results |
+| `speed_safety_scores_evaluation.json` | 4-component evaluation metrics |
 | `roadsense_scores.csv` | 3-module scored segments (tabular) |
-| `roadsense_scores.gpkg` | 3-module scored segments (geospatial) |
+| `roadsense_scores.gpkg` | 3-module scored segments (geospatial, ESRI-ready) |
+| `roadsense_scores.geojson` | 3-module scored segments (lightweight web) |
 | `roadsense_scores_map.html` | Interactive folium map for 3-module results |
+| `roadsense_scores_evaluation.json` | 3-module evaluation metrics |
 
 **Interactive maps:**
-- [4-Component Map](https://shamiquekhan.github.io/RoadSense/4component_map.html) (GitHub Pages)
-- [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_map.html) (GitHub Pages)
+- [4-Component Map](https://shamiquekhan.github.io/RoadSense/speed_safety_scores_map.html) (GitHub Pages)
+- [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_scores_map.html) (GitHub Pages)
 
 ## Methodology
 
@@ -149,10 +162,9 @@ Where no match is found, a default of 50 km/h is applied.
 This project uses the following data sources:
 
 | Dataset | Source | Licence | Citation |
-|---|---|---|---|
+|---|---|---|---|---|
 | ADB Challenge GPS Probe Data | ADB AI for Safer Roads 2026 challenge data package | NDA / challenge terms | Asian Development Bank. (2026). *AI for Safer Roads 2026 — Speed and Volume Data for Thailand and Maharashtra*. ADB Challenge Dataset. |
 | OpenStreetMap Road Network | OpenStreetMap via OSMnx / pyrosm | ODbL 1.0 | OpenStreetMap contributors. (2026). Planet dump. https://planet.openstreetmap.org |
-| Mapillary Street-Level Imagery | Mapillary API / open-clip-torch | CC-BY-SA 4.0 | Mapillary. (2026). Mapillary street-level imagery and computer vision detections. https://www.mapillary.com |
 | Safe System Reference Speeds | WHO / iRAP / ITF-OECD | Open access | World Health Organization. (2021). *Global Plan for the Decade of Action for Road Safety 2021–2030*. Geneva: WHO. https://www.who.int/publications/i/item/9789240032817 |
 | Pedestrian Fatality Risk Curve | ITF/OECD | Open access | ITF/OECD. (2018). *Speed and Crash Risk*. International Transport Forum Research Report. Paris: OECD Publishing. https://www.itf-oecd.org/speed-and-crash-risk |
 | Points of Interest (Schools, Markets) | OpenStreetMap / Overpass API | ODbL 1.0 | OpenStreetMap contributors. See above. |
