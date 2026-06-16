@@ -16,6 +16,7 @@ from roadsense.config import (
     OUTPUT_DIR,
 )
 from roadsense.data.loader import load_and_clean, map_to_roadsense_schema
+from roadsense.evaluation.metrics import correlation_matrix, sensitivity_analysis, morans_i
 from roadsense.scoring import (
     score_dataframe_4component,
     score_dataframe_roadsense,
@@ -96,6 +97,7 @@ def run_pipeline_4component(
     print_kpis_4component(df)
 
     _export(df, out_dir, prefix="speed_safety_scores")
+    _save_evaluation(df, out_dir, prefix="speed_safety_scores")
     return df
 
 
@@ -115,6 +117,7 @@ def run_pipeline_roadsense(
     print_kpis_roadsense(df)
 
     _export(df, out_dir, prefix="roadsense_scores")
+    _save_evaluation(df, out_dir, prefix="roadsense_scores")
     return df
 
 
@@ -170,3 +173,49 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
         summary.to_csv(kpi_path, index=False)
     except Exception:
         pass  # KPI export is best-effort
+
+
+def _save_evaluation(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
+    """Compute and save evaluation diagnostics to JSON."""
+    import json
+    eval_path = out_dir / f"{prefix}_evaluation.json"
+
+    ev = df.copy()
+    if not {"A_score", "B_score", "C_score", "SSS"}.issubset(ev.columns):
+        if "speed_safety_score" in ev.columns:
+            ev["SSS"] = ev["speed_safety_score"]
+        if "vru_risk_score" in ev.columns:
+            ev["B_score"] = ev["vru_risk_score"]
+        if "priority_class" in ev.columns:
+            ev["risk_tier"] = ev["priority_class"]
+        if "segment_id" not in ev.columns:
+            ev["segment_id"] = ev.get("OBJECTID", ev.index)
+
+    try:
+        results: dict[str, object] = {
+            "correlation_matrix": correlation_matrix(ev).to_dict(),
+            "morans_i": morans_i(ev),
+            "sensitivity": {},
+        }
+        sens = sensitivity_analysis(ev)
+        if "error" not in sens:
+            results["sensitivity"] = sens
+        else:
+            results["sensitivity_note"] = sens["error"]
+
+        if "segment_id" in ev.columns:
+            score_col = "SSS" if "SSS" in ev.columns else "speed_safety_score"
+            tier_col = "risk_tier" if "risk_tier" in ev.columns else "priority_class"
+            if score_col in ev.columns and tier_col in ev.columns:
+                total = len(ev)
+                for tier in ["Critical", "High", "Moderate", "Low"]:
+                    n = (ev[tier_col].str.contains(tier, na=False)).sum()
+                    pct = n / total * 100 if total else 0
+                    length_col = "Shape_Length" if "Shape_Length" in ev.columns else "length_m"
+                    km = ev.loc[ev[tier_col].str.contains(tier, na=False), length_col].sum() / 1000 if length_col in ev.columns else 0
+                    results.setdefault("tier_summary", {})[tier] = {"count": int(n), "pct": round(pct, 1), "km": round(float(km), 1)}
+
+        eval_path.write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
+        logger.info(f"  Evaluation: {eval_path}")
+    except Exception as exc:
+        logger.warning(f"Evaluation skipped: {exc}")

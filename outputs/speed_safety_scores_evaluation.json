@@ -1,0 +1,43 @@
+{
+  "correlation_matrix": {
+    "B_score": {
+      "B_score": 1.0,
+      "SSS": 0.818
+    },
+    "SSS": {
+      "B_score": 0.818,
+      "SSS": 1.0
+    }
+  },
+  "morans_i": {
+    "I": NaN,
+    "p_value": 0.001,
+    "z_score": NaN,
+    "n_segments": 100,
+    "interpretation": "Weak or non-significant spatial clustering."
+  },
+  "sensitivity": {},
+  "sensitivity_note": "missing required columns",
+  "tier_summary": {
+    "Critical": {
+      "count": 25,
+      "pct": 25.0,
+      "km": 120.1
+    },
+    "High": {
+      "count": 13,
+      "pct": 13.0,
+      "km": 57.0
+    },
+    "Moderate": {
+      "count": 11,
+      "pct": 11.0,
+      "km": 55.9
+    },
+    "Low": {
+      "count": 51,
+      "pct": 51.0,
+      "km": 219.2
+    }
+  }
+}

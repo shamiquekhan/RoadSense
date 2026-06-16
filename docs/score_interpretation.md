@@ -9,11 +9,11 @@ The score is not a measure of driver behaviour alone. It is a measure of whether
 ## Risk tiers
 
 | Tier | Score | Meaning |
-|---|---|---|
-| Critical | 0.75-1.00 | Immediate review recommended |
-| High | 0.50-0.74 | Priority review within 12 months |
-| Medium | 0.25-0.49 | Monitor in the next cycle |
-| Low | 0.00-0.24 | No immediate action required |
+|---|---|---|---|
+| Critical | ≥ 0.65 | Immediate review recommended |
+| High | 0.45 – 0.65 | Priority review within 12 months |
+| Moderate | 0.25 – 0.45 | Monitor in the next cycle |
+| Low | < 0.25 | No immediate action required |
 
 ## How to read the popup
 

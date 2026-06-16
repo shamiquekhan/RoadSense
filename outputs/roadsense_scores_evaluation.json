@@ -1,0 +1,86 @@
+{
+  "correlation_matrix": {
+    "A_score": {
+      "A_score": 1.0,
+      "B_score": 0.823,
+      "C_score": 0.463,
+      "SSS": 0.899
+    },
+    "B_score": {
+      "A_score": 0.823,
+      "B_score": 1.0,
+      "C_score": 0.759,
+      "SSS": 0.957
+    },
+    "C_score": {
+      "A_score": 0.463,
+      "B_score": 0.759,
+      "C_score": 1.0,
+      "SSS": 0.769
+    },
+    "SSS": {
+      "A_score": 0.899,
+      "B_score": 0.957,
+      "C_score": 0.769,
+      "SSS": 1.0
+    }
+  },
+  "morans_i": {
+    "I": NaN,
+    "p_value": 0.001,
+    "z_score": NaN,
+    "n_segments": 100,
+    "interpretation": "Weak or non-significant spatial clustering."
+  },
+  "sensitivity": {
+    "results": [
+      {
+        "perturbation": "module_a x1.20",
+        "top_n_stability": 1.0
+      },
+      {
+        "perturbation": "module_a x0.80",
+        "top_n_stability": 1.0
+      },
+      {
+        "perturbation": "module_b x1.20",
+        "top_n_stability": 1.0
+      },
+      {
+        "perturbation": "module_b x0.80",
+        "top_n_stability": 1.0
+      },
+      {
+        "perturbation": "module_c x1.20",
+        "top_n_stability": 1.0
+      },
+      {
+        "perturbation": "module_c x0.80",
+        "top_n_stability": 1.0
+      }
+    ],
+    "mean_stability": 1.0
+  },
+  "tier_summary": {
+    "Critical": {
+      "count": 16,
+      "pct": 16.0,
+      "km": 72.7
+    },
+    "High": {
+      "count": 19,
+      "pct": 19.0,
+      "km": 89.8
+    },
+    "Moderate": {
+      "count": 17,
+      "pct": 17.0,
+      "km": 91.0
+    },
+    "Low": {
+      "count": 48,
+      "pct": 48.0,
+      "km": 198.6
+    }
+  }
+}

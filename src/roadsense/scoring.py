@@ -53,8 +53,8 @@ def pedestrian_fatality_risk(speed_kmh: float) -> float:
 
 def vru_exposure(road_class: str, land_use: str) -> float:
     """Base VRU exposure from road class * land use."""
-    rc = ROAD_CLASS_VRU.get(road_class, 0.5)
-    lu = LAND_USE_VRU.get(land_use, 0.5)
+    rc = ROAD_CLASS_VRU.get(road_class.lower(), 0.5)
+    lu = LAND_USE_VRU.get(land_use.lower(), 0.5)
     return rc * lu
 
 
@@ -125,17 +125,19 @@ def compute_module_b_score(
     raw = base * speed
     if ptw_flag:
         raw += 0.15
-    if land_use == "urban":
+    if land_use.lower() == "urban":
         raw += 0.10
     return round(min(raw, 1.0), 4)
 
 
 def compute_module_c_score(road_class: str, land_use: str, f85: float, posted: float) -> float:
     """RoadSense Module C: road environment proxy (0–1)."""
-    infra_gap = INFRA_GAP_MAP.get((road_class, land_use), 0.50)
+    rc = road_class.lower()
+    lu = land_use.lower()
+    infra_gap = INFRA_GAP_MAP.get((rc, lu), 0.50)
     speed_mismatch = max(f85 - posted, 0) / max(posted, 1)
     speed_mismatch = min(speed_mismatch, 1.0)
-    urban_secondary_bonus = 0.15 if (road_class == "secondary" and land_use == "urban") else 0.0
+    urban_secondary_bonus = 0.15 if (rc == "secondary" and lu == "urban") else 0.0
     return round(min(0.60 * infra_gap + 0.25 * speed_mismatch + urban_secondary_bonus, 1.0), 4)
 
 

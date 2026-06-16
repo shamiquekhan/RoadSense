@@ -2,41 +2,41 @@ region,RoadClass,LandUse,priority_class,section_count,total_length_km,mean_score
 Maharashtra,motorway,RURAL,Low — Monitor,5,16.9,0.07
 Maharashtra,motorway,RURAL,Moderate — Scheduled Review,1,5.62,0.33
 Maharashtra,motorway,URBAN,Low — Monitor,7,28.37,0.11
-Maharashtra,motorway,URBAN,Moderate — Scheduled Review,1,2.24,0.31
-Maharashtra,primary,RURAL,Critical — Immediate Review,1,6.14,0.67
-Maharashtra,primary,RURAL,Low — Monitor,2,7.08,0.15
-Maharashtra,primary,URBAN,Critical — Immediate Review,4,17.92,0.72
-Maharashtra,primary,URBAN,High — Priority Review,2,5.22,0.55
-Maharashtra,primary,URBAN,Low — Monitor,2,6.16,0.12
-Maharashtra,primary,URBAN,Moderate — Scheduled Review,2,10.08,0.35
-Maharashtra,secondary,RURAL,Critical — Immediate Review,1,4.77,0.78
-Maharashtra,secondary,RURAL,Low — Monitor,3,15.12,0.18
-Maharashtra,secondary,URBAN,Critical — Immediate Review,4,22.06,0.75
-Maharashtra,secondary,URBAN,Low — Monitor,1,5.77,0.13
-Maharashtra,secondary,URBAN,Moderate — Scheduled Review,1,3.49,0.45
-Maharashtra,trunk,RURAL,High — Priority Review,2,11.69,0.52
-Maharashtra,trunk,RURAL,Low — Monitor,5,19.68,0.15
-Maharashtra,trunk,URBAN,Critical — Immediate Review,3,11.43,0.73
-Maharashtra,trunk,URBAN,High — Priority Review,2,9.26,0.54
-Maharashtra,trunk,URBAN,Moderate — Scheduled Review,1,4.2,0.28
+Maharashtra,motorway,URBAN,Moderate — Scheduled Review,1,2.24,0.32
+Maharashtra,primary,RURAL,Critical — Immediate Review,1,6.14,0.65
+Maharashtra,primary,RURAL,Low — Monitor,2,7.08,0.14
+Maharashtra,primary,URBAN,Critical — Immediate Review,4,17.92,0.79
+Maharashtra,primary,URBAN,High — Priority Review,3,9.47,0.57
+Maharashtra,primary,URBAN,Low — Monitor,2,6.16,0.13
+Maharashtra,primary,URBAN,Moderate — Scheduled Review,1,5.83,0.34
+Maharashtra,secondary,RURAL,Critical — Immediate Review,1,4.77,0.75
+Maharashtra,secondary,RURAL,Low — Monitor,3,15.12,0.17
+Maharashtra,secondary,URBAN,Critical — Immediate Review,4,22.06,0.86
+Maharashtra,secondary,URBAN,High — Priority Review,1,3.49,0.53
+Maharashtra,secondary,URBAN,Low — Monitor,1,5.77,0.15
+Maharashtra,trunk,RURAL,High — Priority Review,2,11.69,0.51
+Maharashtra,trunk,RURAL,Low — Monitor,5,19.68,0.14
+Maharashtra,trunk,URBAN,Critical — Immediate Review,3,11.43,0.76
+Maharashtra,trunk,URBAN,High — Priority Review,2,9.26,0.57
+Maharashtra,trunk,URBAN,Moderate — Scheduled Review,1,4.2,0.3
 Thailand,motorway,RURAL,Low — Monitor,4,16.99,0.12
-Thailand,motorway,URBAN,Low — Monitor,3,12.08,0.09
-Thailand,motorway,URBAN,Moderate — Scheduled Review,1,5.61,0.34
-Thailand,primary,RURAL,Critical — Immediate Review,3,11.57,0.72
-Thailand,primary,RURAL,Low — Monitor,5,21.74,0.13
-Thailand,primary,URBAN,Critical — Immediate Review,3,13.59,0.73
-Thailand,primary,URBAN,Low — Monitor,1,6.78,0.07
-Thailand,primary,URBAN,Moderate — Scheduled Review,1,4.74,0.35
-Thailand,secondary,RURAL,Critical — Immediate Review,3,19.23,0.76
-Thailand,secondary,RURAL,High — Priority Review,1,4.65,0.62
-Thailand,secondary,RURAL,Low — Monitor,5,24.95,0.13
-Thailand,secondary,RURAL,Moderate — Scheduled Review,1,6.79,0.33
-Thailand,secondary,URBAN,Critical — Immediate Review,1,6.11,0.81
-Thailand,secondary,URBAN,High — Priority Review,1,4.96,0.48
-Thailand,secondary,URBAN,Moderate — Scheduled Review,1,6.35,0.33
-Thailand,trunk,RURAL,Critical — Immediate Review,1,5.49,0.66
+Thailand,motorway,URBAN,Low — Monitor,3,12.08,0.1
+Thailand,motorway,URBAN,Moderate — Scheduled Review,1,5.61,0.35
+Thailand,primary,RURAL,Critical — Immediate Review,3,11.57,0.7
+Thailand,primary,RURAL,Low — Monitor,5,21.74,0.12
+Thailand,primary,URBAN,Critical — Immediate Review,3,13.59,0.8
+Thailand,primary,URBAN,Low — Monitor,1,6.78,0.1
+Thailand,primary,URBAN,Moderate — Scheduled Review,1,4.74,0.41
+Thailand,secondary,RURAL,Critical — Immediate Review,3,19.23,0.74
+Thailand,secondary,RURAL,High — Priority Review,1,4.65,0.6
+Thailand,secondary,RURAL,Low — Monitor,5,24.95,0.12
+Thailand,secondary,RURAL,Moderate — Scheduled Review,1,6.79,0.31
+Thailand,secondary,URBAN,Critical — Immediate Review,1,6.11,0.92
+Thailand,secondary,URBAN,High — Priority Review,1,4.96,0.54
+Thailand,secondary,URBAN,Moderate — Scheduled Review,1,6.35,0.38
+Thailand,trunk,RURAL,High — Priority Review,1,5.49,0.65
 Thailand,trunk,RURAL,Low — Monitor,7,34.87,0.09
-Thailand,trunk,URBAN,Critical — Immediate Review,1,5.28,0.69
-Thailand,trunk,URBAN,High — Priority Review,3,10.02,0.55
-Thailand,trunk,URBAN,Low — Monitor,1,2.71,0.18
-Thailand,trunk,URBAN,Moderate — Scheduled Review,3,14.48,0.33
+Thailand,trunk,URBAN,Critical — Immediate Review,2,7.33,0.7
+Thailand,trunk,URBAN,High — Priority Review,2,7.97,0.54
+Thailand,trunk,URBAN,Low — Monitor,1,2.71,0.2
+Thailand,trunk,URBAN,Moderate — Scheduled Review,3,14.48,0.36

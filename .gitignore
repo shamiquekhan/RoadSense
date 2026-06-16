@@ -20,7 +20,8 @@ data/processed/
 outputs/*
 !outputs/*.csv
 !outputs/*_map.html
-*.geojson
+!outputs/*.geojson
+!outputs/*_evaluation.json
 *.gpkg
 *.zip
 wget-log*

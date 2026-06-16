@@ -31,9 +31,7 @@ The analysis uses three categories of data:
 
 2. **OpenStreetMap** — Road network geometry via OSMnx/pyrosm; points of interest (schools, markets) via Overpass API for VRU context enrichment; speed limit tags as fallback where official limits are missing.
 
-3. **Mapillary Street-Level Imagery** — Road environment detections (pedestrian crossings, sidewalks, barriers, shoulders) via the Mapillary API. A CLIP (Contrastive Language-Image Pre-training) zero-shot fallback using open-clip-torch is implemented for countries with sparse Mapillary coverage.
-
-4. **Safe System Reference Speeds** — Drawn from WHO (2021) Global Plan for the Decade of Action for Road Safety and ITF/OECD (2018) Speed and Crash Risk. These define survivable impact speeds per (road_class, land_use) pair — e.g., secondary urban roads: 30 km/h, primary urban: 50 km/h, trunk rural: 80 km/h.
+3. **Safe System Reference Speeds** — Drawn from WHO (2021) Global Plan for the Decade of Action for Road Safety and ITF/OECD (2018) Speed and Crash Risk. These define survivable impact speeds per (road_class, land_use) pair — e.g., secondary urban roads: 30 km/h, primary urban: 50 km/h, trunk rural: 80 km/h.
 
 **Data Preprocessing**
 
@@ -69,7 +67,7 @@ SSS = 0.35 × A + 0.35 × B + 0.30 × C
 Each module operates independently:
 - **Module A (Speed Alignment):** Average of limit misalignment and operating speed risk scores
 - **Module B (VRU Exposure):** Land use × road class × speed risk, with powered two-wheeler bonus on trunk/primary roads where F85 > 80 km/h
-- **Module C (Road Environment):** Infrastructure gap proxy from (road class, land use) lookup table, plus speed mismatch penalty where F85 exceeds posted speed
+- **Module C (Road Environment):** Infrastructure gap score from a static (road class, land use) lookup table calibrated to Safe System guidance, plus speed mismatch penalty where F85 exceeds posted speed
 
 **Risk Tier Classification:**
 

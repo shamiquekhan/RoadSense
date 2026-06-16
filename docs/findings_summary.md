@@ -6,6 +6,8 @@
 **Team:** Neuron Nexus
 **Date:** June 2026
 
+> **Note on data:** The numbers in this report (14,793 segments, 11,445 km Critical, etc.) are from the full ADB challenge dataset. The open-source repository includes a 100-segment synthetic demo for pipeline testing. See `data/raw/README.md` for details.
+
 ---
 
 ## 1. Executive Summary
@@ -87,7 +89,7 @@ The 3-module approach produces broadly consistent rankings (correlation >0.85 wi
 
 - **Module A** (Speed Alignment) drives most Critical classifications — segments with high A scores almost always score Critical overall.
 - **Module B** (VRU Exposure) is the most discriminating variable between urban and rural risk profiles.
-- **Module C** (Road Environment) is the weakest signal due to reliance on proxy values; Mapillary/CLIP imagery integration would strengthen this module significantly.
+- **Module C** (Road Environment) is the weakest signal due to reliance on static proxy values; future Mapillary/CLIP imagery integration would strengthen this module significantly.
 
 ---
 

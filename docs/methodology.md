@@ -18,9 +18,9 @@ Module A compares observed operating speed with the posted limit and a Safe Syst
 
 Module B estimates exposure using attractor presence, population density, conflict potential, land use, and PTW indicators. These are normalised and combined into `B_score`.
 
-## 5. Module C: street imagery
+## 5. Module C: road environment proxy
 
-Module C uses Mapillary detections or a CLIP fallback to estimate protective infrastructure coverage. Missing imagery is handled conservatively with neutral imputation, and the resulting score is written as `C_score`.
+Module C assigns an infrastructure gap score based on road class and land use using a static lookup table calibrated to published Safe System guidance. A speed mismatch penalty (proportional to the gap between observed 85th percentile speed and the posted limit) is added. The combined score is written as `C_score`. Future releases will replace the static lookup with real infrastructure detection from Mapillary street-level imagery.
 
 ## 6. Composite scoring and evaluation
 

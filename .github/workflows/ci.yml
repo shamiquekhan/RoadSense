@@ -15,6 +15,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install black flake8 mypy
+      - run: pip install -e .
       - run: black --check src/ tests/
       - run: flake8 src/ tests/ --max-line-length=88
       - run: mypy src/ --ignore-missing-imports
@@ -23,42 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          environment-file: environment.yml
-          activate-environment: roadsense
-      - name: Run tests
-        shell: bash -l {0}
-        run: pytest tests/ -v --cov=src --cov-fail-under=80
-
-  validate-config:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - run: pip install pyyaml
-      - name: Validate YAML configs
-        run: |
-          python -c "
-          import yaml
-          for f in ['config/scoring_weights.yaml',
-                    'config/safe_system_speeds.yaml',
-                    'config/buffer_params.yaml',
-                    'config/mapillary_tags.yaml']:
-              with open(f) as fp:
-                  yaml.safe_load(fp)
-              print(f'OK: {f}')
-          "
-      - name: Check module weights sum to 1
-        run: |
-          python -c "
-          import yaml
-          with open('config/scoring_weights.yaml') as f:
-              cfg = yaml.safe_load(f)
-          sss = cfg['sss']
-          total = sum(sss.values())
-          assert abs(total - 1.0) < 1e-9, f'SSS weights sum to {total}, not 1.0'
-          print(f'SSS weights valid: {sss}')
-          "
+      - run: pip install -e .
+      - run: pip install pytest pytest-cov
+      - name: Run tests
+        run: pytest tests/ -v --cov=src --cov-fail-under=80

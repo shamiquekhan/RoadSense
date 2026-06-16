@@ -1,41 +1,44 @@
-.PHONY: all setup preprocess module_a module_b module_c score evaluate visualise test lint clean
+.PHONY: all setup install test lint format clean run run-4component run-roadsense run-both serve
 
-all: preprocess score visualise
+all: install
 
 setup:
-	conda env create -f environment.yml
-	cp .env.example .env
-	@echo "Edit .env with your API tokens before running the pipeline."
+	pip install -e .
+	pip install -r requirements-dev.txt
 
-preprocess:
-	python -m src.preprocessing
+install:
+	pip install -e .
+	pip install -r requirements-dev.txt
 
-module_a:
-	python -m src.module_a
+run:
+	python run_pipeline.py --approach both
 
-module_b:
-	python -m src.module_b
+run-4component:
+	python run_pipeline.py --approach 4component
 
-module_c:
-	python -m src.module_c
+run-roadsense:
+	python run_pipeline.py --approach roadsense
 
-score:
-	python -m src.scoring
+run-both:
+	python run_pipeline.py --approach both
 
-evaluate:
-	python -m src.evaluation
-
-visualise:
-	python -m src.visualise
+serve:
+	python run_pipeline.py --approach 4component --serve
 
 test:
-	pytest tests/ -v
+	python -m pytest tests/ -v --cov=src --cov-report=term-missing
 
 lint:
-	black src/ tests/
-	flake8 src/ tests/
+	black --check src/ tests/ scripts/
+	flake8 src/ tests/ scripts/
+
+format:
+	black src/ tests/ scripts/
 
 clean:
-	rm -f data/processed/*.gpkg
-	rm -f outputs/**/*
+	rm -rf outputs/*.csv outputs/*.gpkg outputs/*.geojson outputs/*.html
+	rm -rf data/processed/
+	rm -rf .pytest_cache
+	rm -rf __pycache__
 	find . -name "__pycache__" -exec rm -rf {} +
+	find . -name "*.pyc" -delete

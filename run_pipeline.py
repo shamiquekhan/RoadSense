@@ -18,12 +18,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 # Ensure the src package is on the path
 _HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE / "src"))
+
+import geopandas as gpd
 
 from roadsense.pipeline import run_pipeline_4component, run_pipeline_roadsense
 from roadsense.data.osm_enrich import enrich_with_osm_pois
