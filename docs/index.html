@@ -143,43 +143,42 @@
     .btn-sm-dark { background: #1d1d1f; color: #f5f5f7; }
     .btn-sm-dark:hover { opacity: 0.8; text-decoration: none; }
 
-    /* -- Stats / Metric Display -- */
-    .stats-four {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    /* -- Stats -- */
+    .tier-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      background: #3a3a3c; border-radius: 18px; overflow: hidden;
     }
-    .stat-card {
-      text-align: center; padding: 28px 16px; border-radius: 18px;
+    .tier-cell {
+      background: #2a2a2c; padding: 32px 20px; text-align: center;
     }
-    .stat-card-critical { background: rgba(255, 77, 77, 0.12); }
-    .stat-card-high { background: rgba(255, 152, 0, 0.12); }
-    .stat-card-moderate { background: rgba(255, 213, 79, 0.12); }
-    .stat-card-low { background: rgba(102, 187, 106, 0.12); }
-    .stat-number {
+    .tier-km {
       font-size: 34px; font-weight: 600; line-height: 1.1;
       letter-spacing: -0.374px;
     }
-    .stat-percent {
+    .tier-pct {
       font-size: 17px; font-weight: 400; margin-top: 2px;
     }
-    .stat-label {
+    .tier-name {
       font-size: 14px; font-weight: 400; line-height: 1.43;
-      letter-spacing: -0.224px; margin-top: 6px;
+      letter-spacing: -0.224px; margin-top: 8px; color: #a1a1a6;
     }
-
-    .stat-row {
-      display: flex; gap: 48px; flex-wrap: wrap; margin-top: 40px;
+    .tier-sep {
+      width: 100%; height: 1px; background: #3a3a3c; border: none;
+      margin: 40px 0;
+    }
+    .metric-row {
+      display: flex; gap: 48px; flex-wrap: wrap;
       justify-content: space-between;
     }
-    .stat-item { display: flex; flex-direction: column; gap: 4px; }
-    .stat-item-value {
+    .metric-item { display: flex; flex-direction: column; gap: 4px; }
+    .metric-value {
       font-size: 28px; font-weight: 600; line-height: 1.14;
       letter-spacing: 0.196px;
     }
-    .stat-item-label {
+    .metric-label {
       font-size: 14px; font-weight: 400; line-height: 1.43;
-      letter-spacing: -0.224px;
+      letter-spacing: -0.224px; color: #a1a1a6;
     }
-    .stat-label-light { color: #a1a1a6; }
 
     /* -- Cards -- */
     .card-grid { display: grid; gap: 18px; margin-top: 32px; }
@@ -279,7 +278,7 @@
       .hero-display { font-size: 40px; }
       .hero-lead { font-size: 24px; }
       .display-lg { font-size: 34px; }
-      .stats-four { grid-template-columns: repeat(2, 1fr); }
+      .tier-grid { grid-template-columns: repeat(2, 1fr); }
       .card-grid-3, .card-grid-4 { grid-template-columns: repeat(2, 1fr); }
       .map-grid { grid-template-columns: 1fr; }
       .stat-row { gap: 32px; }
@@ -290,9 +289,9 @@
       .hero-tile { padding: 80px 16px 48px; }
       .hero-display { font-size: 34px; }
       .hero-lead { font-size: 21px; }
-      .stats-four { grid-template-columns: 1fr; }
+      .tier-grid { grid-template-columns: repeat(2, 1fr); }
       .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
-      .stat-row { flex-direction: column; gap: 20px; }
+      .metric-row { flex-direction: column; gap: 20px; }
       .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -377,45 +376,47 @@
   </section>
   <section class="tile tile-dark-2" style="padding-top:0;">
     <div class="tile-inner">
-      <div class="stats-four">
-        <div class="stat-card stat-card-critical">
-          <div class="stat-number" style="color:#ff4d4d;">11,445 km</div>
-          <div class="stat-percent" style="color:#ff4d4d;">12.2%</div>
-          <div class="stat-label" style="color:#a1a1a6;">Critical</div>
+      <div class="tier-grid">
+        <div class="tier-cell">
+          <div class="tier-km" style="color:#ff4d4d;">11,445 km</div>
+          <div class="tier-pct" style="color:#ff4d4d;">12.2%</div>
+          <div class="tier-name">Critical</div>
         </div>
-        <div class="stat-card stat-card-high">
-          <div class="stat-number" style="color:#ff9800;">19,313 km</div>
-          <div class="stat-percent" style="color:#ff9800;">20.7%</div>
-          <div class="stat-label" style="color:#a1a1a6;">High</div>
+        <div class="tier-cell">
+          <div class="tier-km" style="color:#ff9800;">19,313 km</div>
+          <div class="tier-pct" style="color:#ff9800;">20.7%</div>
+          <div class="tier-name">High</div>
         </div>
-        <div class="stat-card stat-card-moderate">
-          <div class="stat-number" style="color:#ffd54f;">25,499 km</div>
-          <div class="stat-percent" style="color:#ffd54f;">27.3%</div>
-          <div class="stat-label" style="color:#a1a1a6;">Moderate</div>
+        <div class="tier-cell">
+          <div class="tier-km" style="color:#ffd54f;">25,499 km</div>
+          <div class="tier-pct" style="color:#ffd54f;">27.3%</div>
+          <div class="tier-name">Moderate</div>
         </div>
-        <div class="stat-card stat-card-low">
-          <div class="stat-number" style="color:#66bb6a;">37,253 km</div>
-          <div class="stat-percent" style="color:#66bb6a;">39.8%</div>
-          <div class="stat-label" style="color:#a1a1a6;">Low</div>
+        <div class="tier-cell">
+          <div class="tier-km" style="color:#66bb6a;">37,253 km</div>
+          <div class="tier-pct" style="color:#66bb6a;">39.8%</div>
+          <div class="tier-name">Low</div>
         </div>
       </div>
 
-      <div class="stat-row">
-        <div class="stat-item">
-          <span class="stat-item-value" style="color:#ffffff;">77.9%</span>
-          <span class="stat-item-label stat-label-light">Posted limits exceed Safe System</span>
+      <hr class="tier-sep">
+
+      <div class="metric-row">
+        <div class="metric-item">
+          <span class="metric-value" style="color:#ffffff;">77.9%</span>
+          <span class="metric-label">Posted limits exceed Safe System</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-item-value" style="color:#ffffff;">76.6%</span>
-          <span class="stat-item-label stat-label-light">Traffic above survivable speeds</span>
+        <div class="metric-item">
+          <span class="metric-value" style="color:#ffffff;">76.6%</span>
+          <span class="metric-label">Traffic above survivable speeds</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-item-value" style="color:#ffffff;">0.415</span>
-          <span class="stat-item-label stat-label-light">Mean Speed Safety Score</span>
+        <div class="metric-item">
+          <span class="metric-value" style="color:#ffffff;">0.415</span>
+          <span class="metric-label">Mean Speed Safety Score</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-item-value" style="color:#ffffff;">38 km/h</span>
-          <span class="stat-item-label stat-label-light">Avg operating gap on Critical segments</span>
+        <div class="metric-item">
+          <span class="metric-value" style="color:#ffffff;">38 km/h</span>
+          <span class="metric-label">Avg operating gap on Critical</span>
         </div>
       </div>
     </div>
