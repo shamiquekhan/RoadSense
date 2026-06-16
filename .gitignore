@@ -10,9 +10,13 @@ venv/
 .ruff_cache/
 .ipynb_checkpoints/
 
-# Data and outputs
-/data/
-/outputs/
+# Data — large/NDA-protected, not committed
+data/raw/
+data/pbf/
+data/processed/
+
+# Outputs (generated)
+outputs/
 *.geojson
 *.zip
 wget-log*
@@ -21,3 +25,9 @@ wget-log*
 .DS_Store
 .vscode/
 .idea/
+
+# Coverage
+.coverage
+
+# Experimental (separate repo)
+experimental/
