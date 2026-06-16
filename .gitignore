@@ -10,14 +10,18 @@ venv/
 .ruff_cache/
 .ipynb_checkpoints/
 
-# Data — large/NDA-protected, not committed
-data/raw/
+# Data — large/NDA-protected, not committed (except synthetic demo)
+data/raw/*
+!data/raw/ADB_Innovation_*.geojson
 data/pbf/
 data/processed/
 
-# Outputs (generated)
-outputs/
+# Outputs (generated — demo results committed)
+outputs/*
+!outputs/*.csv
+!outputs/*_map.html
 *.geojson
+*.gpkg
 *.zip
 wget-log*
 
