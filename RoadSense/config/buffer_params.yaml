@@ -1,0 +1,7 @@
+# Spatial buffer radii for context layer joins (metres)
+
+attractors_m: 150
+population_m: 300
+ptw_m: 200
+intersection_m: 50
+imagery_m: 50

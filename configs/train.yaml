@@ -1,0 +1,35 @@
+# RoadSense scoring configuration (reference).
+# The authoritative source is src/roadsense/config.py.
+# This file is maintained for documentation and future YAML-based loading.
+scoring:
+  approach: "4component"  # "4component", "roadsense", or "both"
+
+  # 4-component weights
+  weights_4component:
+    limit_misalignment: 0.30
+    operating_speed: 0.30
+    vru_exposure: 0.25
+    volume: 0.15
+
+  # 3-module weights
+  weights_roadsense:
+    module_a: 0.35
+    module_b: 0.35
+    module_c: 0.30
+
+  # Priority tier thresholds
+  thresholds:
+    critical: 0.65
+    high: 0.45
+    moderate: 0.25
+    low: 0.00
+
+data:
+  min_sample_size: 500
+  min_reliable_speed: 5.0  # km/h
+  osm_buffer_meters: 200
+  osm_enabled: false
+
+output:
+  formats: ["csv", "gpkg", "geojson"]
+  map: true

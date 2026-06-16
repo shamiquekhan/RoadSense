@@ -1,0 +1,15 @@
+motorway_urban: 80
+motorway_rural: 100
+primary_urban: 50
+primary_rural: 80
+secondary_urban: 40
+secondary_rural: 60
+tertiary_urban: 30
+tertiary_rural: 50
+residential_urban: 30
+residential_rural: 40
+local_urban: 30
+local_rural: 40
+service_urban: 20
+service_rural: 30
+default: 50

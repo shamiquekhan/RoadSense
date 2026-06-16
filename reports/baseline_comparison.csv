@@ -1,0 +1,13 @@
+split,train_region,test_region,feature_set,model,n_train,n_test,MAE,RMSE,R2
+random,mixed,mixed,full,LinearRegression,11834,2959,0.13335654526932605,0.1732888481965103,0.5635056435454331
+Thailand_to_Maharashtra,Thailand,Maharashtra,full,LinearRegression,11529,3264,0.24016695452714346,0.31001276692252355,0.004355192986122525
+Maharashtra_to_Thailand,Maharashtra,Thailand,full,LinearRegression,3264,11529,0.8797871380956492,0.9808970231759402,-14.790152984830364
+random,mixed,mixed,full,RandomForestRegressor,11834,2959,0.02959196217930685,0.07649647421096863,0.9149410063866098
+Thailand_to_Maharashtra,Thailand,Maharashtra,full,RandomForestRegressor,11529,3264,0.1834302684764369,0.27757994398549335,0.2017821379509298
+Maharashtra_to_Thailand,Maharashtra,Thailand,full,RandomForestRegressor,3264,11529,0.2031820354218432,0.27449587114144663,-0.23654844988549795
+random,mixed,mixed,safe,LinearRegression,11834,2959,0.21045856351088701,0.2520269752493847,0.0767241898824681
+Thailand_to_Maharashtra,Thailand,Maharashtra,safe,LinearRegression,11529,3264,0.3089665449995618,0.3529765236787777,-0.290734497382122
+Maharashtra_to_Thailand,Maharashtra,Thailand,safe,LinearRegression,3264,11529,0.25536198277236155,0.2956305155163976,-0.43429348611946206
+random,mixed,mixed,safe,RandomForestRegressor,11834,2959,0.17218886035376121,0.22309866583967278,0.2765119718113933
+Thailand_to_Maharashtra,Thailand,Maharashtra,safe,RandomForestRegressor,11529,3264,0.3071787451697469,0.37754190440846486,-0.476643298319968
+Maharashtra_to_Thailand,Maharashtra,Thailand,safe,RandomForestRegressor,3264,11529,0.25912742119153537,0.3115439756086987,-0.592862250307703

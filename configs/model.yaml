@@ -1,0 +1,37 @@
+# RoadSense scoring model configuration
+# Safe System speed limits by road class and land use
+safe_system_limits:
+  motorway_rural: 110
+  motorway_urban: 100
+  trunk_rural: 80
+  trunk_urban: 50
+  primary_rural: 70
+  primary_urban: 50
+  secondary_rural: 70
+  secondary_urban: 30
+  default: 50
+
+# VRU exposure multipliers
+vru:
+  road_class:
+    motorway: 0.05
+    trunk: 0.30
+    primary: 0.60
+    secondary: 0.90
+    default: 0.50
+  land_use:
+    urban: 1.00
+    rural: 0.40
+    default: 0.50
+
+# Infrastructure gap by road type
+infrastructure_gap:
+  motorway_urban: 0.10
+  motorway_rural: 0.05
+  trunk_urban: 0.50
+  trunk_rural: 0.30
+  primary_urban: 0.70
+  primary_rural: 0.50
+  secondary_urban: 0.90
+  secondary_rural: 0.65
+  default: 0.50

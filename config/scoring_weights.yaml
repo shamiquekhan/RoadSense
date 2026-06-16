@@ -1,0 +1,16 @@
+sss:
+  module_a: 0.40
+  module_b: 0.40
+  module_c: 0.20
+
+module_b:
+  attractor: 0.35
+  population: 0.25
+  conflict: 0.20
+  ptw: 0.20
+
+risk_tiers:
+  critical: 0.75
+  high: 0.50
+  medium: 0.25
+  low: 0.00

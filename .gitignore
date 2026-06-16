@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Data and outputs
+/data/
+/outputs/
+*.geojson
+*.zip
+wget-log*
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/

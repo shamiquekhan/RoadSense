@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="220" viewBox="0 0 1200 220" role="img" aria-label="ADB safer roads pipeline overview">
+  <defs>
+    <style>
+      .box { fill: #f6f7fb; stroke: #2b2d42; stroke-width: 2; rx: 12; ry: 12; }
+      .title { font: 700 18px Arial, sans-serif; fill: #1f2233; }
+      .text { font: 14px Arial, sans-serif; fill: #31354a; }
+      .arrow { stroke: #2b2d42; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2b2d42" />
+    </marker>
+  </defs>
+
+  <rect class="box" x="20" y="55" width="180" height="110" />
+  <text class="title" x="110" y="92" text-anchor="middle">Data Sources</text>
+  <text class="text" x="110" y="120" text-anchor="middle">Roads, probes, imagery,</text>
+  <text class="text" x="110" y="140" text-anchor="middle">context layers</text>
+
+  <path class="arrow" d="M 200 110 L 260 110" />
+
+  <rect class="box" x="270" y="55" width="180" height="110" />
+  <text class="title" x="360" y="92" text-anchor="middle">Preprocessing</text>
+  <text class="text" x="360" y="120" text-anchor="middle">Map-matching, joins,</text>
+  <text class="text" x="360" y="140" text-anchor="middle">segment master table</text>
+
+  <path class="arrow" d="M 450 110 L 510 110" />
+
+  <rect class="box" x="520" y="35" width="180" height="150" />
+  <text class="title" x="610" y="72" text-anchor="middle">Module A</text>
+  <text class="text" x="610" y="98" text-anchor="middle">Speed alignment</text>
+  <text class="text" x="610" y="124" text-anchor="middle">PSL vs v85</text>
+
+  <rect class="box" x="720" y="35" width="180" height="150" />
+  <text class="title" x="810" y="72" text-anchor="middle">Module B</text>
+  <text class="text" x="810" y="98" text-anchor="middle">VRU exposure</text>
+  <text class="text" x="810" y="124" text-anchor="middle">Attractors, density,</text>
+  <text class="text" x="810" y="144" text-anchor="middle">conflict potential</text>
+
+  <rect class="box" x="920" y="35" width="180" height="150" />
+  <text class="title" x="1010" y="72" text-anchor="middle">Module C</text>
+  <text class="text" x="1010" y="98" text-anchor="middle">Imagery analysis</text>
+  <text class="text" x="1010" y="124" text-anchor="middle">Infrastructure gap</text>
+
+  <path class="arrow" d="M 700 110 L 720 110" />
+  <path class="arrow" d="M 900 110 L 920 110" />
+
+  <path class="arrow" d="M 1100 110 L 1160 110" />
+  <rect class="box" x="1120" y="55" width="60" height="110" />
+  <text class="title" x="1150" y="92" text-anchor="middle">SSS</text>
+  <text class="text" x="1150" y="120" text-anchor="middle">Map</text>
+  <text class="text" x="1150" y="140" text-anchor="middle">outputs</text>
+</svg>

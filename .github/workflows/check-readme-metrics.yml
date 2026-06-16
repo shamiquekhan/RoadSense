@@ -1,0 +1,25 @@
+name: Check README metrics
+
+on:
+  push:
+    paths:
+      - 'reports/baseline_comparison.csv'
+      - 'RoadSense/README.md'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'reports/baseline_comparison.csv'
+      - 'RoadSense/README.md'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Run README vs CSV check
+        run: |
+          python3 scripts/ci_check_readme_vs_csv.py
