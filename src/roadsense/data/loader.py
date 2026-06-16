@@ -33,33 +33,37 @@ ADB_FILES: dict[str, dict[str, str | None]] = {
 def load_adb_datasets(data_dir: str | Path | None = None) -> gpd.GeoDataFrame:
     """Load and merge ADB GeoPackage datasets for both regions.
 
-    Tries the primary GPKG path first (real challenge data).
-    Falls back to the original GeoJSON files (sample data).
+    Tries data_dir first (primary), then the archive subdirectory (fallback).
     """
     data_dir = Path(data_dir) if data_dir else RAW_DATA_DIR
-    # Real data is in the archive subdirectory
     archive_dir = data_dir / ".." / "Archive-20260531T145050Z-3-001" / "Archive"
+    legacy_dir = data_dir  # original GeoJSON files
 
     gdfs: list[gpd.GeoDataFrame] = []
     for region, info in ADB_FILES.items():
         path: Path | None = None
         layer: str | None = None
 
-        # Try archive directory
-        ap = (archive_dir / info["path"]).resolve()
-        if ap.exists():
-            path = ap
+        # 1. Primary: data_dir / GPKG
+        primary = (data_dir / info["path"]).resolve()
+        if primary.exists():
+            path = primary
             layer = info["layer"]
         else:
-            # Fallback to data_dir with original naming
-            legacy_name = f"ADB_Innovation_{region}.geojson"
-            lp = (data_dir / legacy_name).resolve()
-            if lp.exists():
-                path = lp
-                logger.info(f"  {region}: using sample GeoJSON (not real challenge data)")
+            # 2. Fallback: archive directory
+            ap = (archive_dir / info["path"]).resolve()
+            if ap.exists():
+                path = ap
+                layer = info["layer"]
             else:
-                logger.warning(f"Missing ADB data file for {region}")
-                continue
+                # 3. Last resort: original GeoJSON
+                legacy = (legacy_dir / f"ADB_Innovation_{region}.geojson").resolve()
+                if legacy.exists():
+                    path = legacy
+                    logger.info(f"  {region}: using sample GeoJSON")
+                else:
+                    logger.warning(f"Missing ADB data file for {region}")
+                    continue
 
         kwargs = {}
         if layer:
