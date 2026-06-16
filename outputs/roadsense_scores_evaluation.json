@@ -28,7 +28,7 @@
   "morans_i": {
     "I": 0.6216,
     "p_value": 0.001,
-    "z_score": 60.5223,
+    "z_score": 61.088,
     "n_segments": 14384,
     "interpretation": "Strong positive spatial clustering \u2014 high-risk segments cluster geographically."
   },

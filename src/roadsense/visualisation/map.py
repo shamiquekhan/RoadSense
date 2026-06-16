@@ -205,38 +205,38 @@ def prepare_for_web(
 def _build_legend_html() -> str:
     return f"""
     <div style="position:fixed; bottom:30px; left:20px; z-index:9999;
-                background:rgba(20,20,35,0.92); color:white;
-                padding:14px 18px; border-radius:10px;
+                background:rgba(255,255,255,0.95); color:#333;
+                padding:14px 18px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15);
                 font-family:-apple-system, BlinkMacSystemFont, sans-serif;
                 font-size:13px; min-width:200px;">
-        <p style="margin:0 0 10px; font-weight:600; font-size:14px; letter-spacing:0.03em;">
+        <p style="margin:0 0 10px; font-weight:600; font-size:14px; letter-spacing:0.03em; color:#222;">
             Speed Safety Score
         </p>
         <div style="display:flex; align-items:center; margin-bottom:6px;">
             <span style="width:28px; height:5px; background:#E24B4A; display:inline-block;
                          border-radius:3px; margin-right:10px;"></span>
             <strong style="color:#E24B4A;">Critical</strong>
-            <span style="margin-left:auto; color:#aaa; font-size:12px;">0.65 – 1.00</span>
+            <span style="margin-left:auto; color:#888; font-size:12px;">0.65 – 1.00</span>
         </div>
         <div style="display:flex; align-items:center; margin-bottom:6px;">
             <span style="width:28px; height:5px; background:#EF9F27; display:inline-block;
                          border-radius:3px; margin-right:10px;"></span>
             <strong style="color:#EF9F27;">High</strong>
-            <span style="margin-left:auto; color:#aaa; font-size:12px;">0.45 – 0.65</span>
+            <span style="margin-left:auto; color:#888; font-size:12px;">0.45 – 0.65</span>
         </div>
         <div style="display:flex; align-items:center; margin-bottom:6px;">
             <span style="width:28px; height:5px; background:#97C459; display:inline-block;
                          border-radius:3px; margin-right:10px;"></span>
             <strong style="color:#97C459;">Moderate</strong>
-            <span style="margin-left:auto; color:#aaa; font-size:12px;">0.25 – 0.45</span>
+            <span style="margin-left:auto; color:#888; font-size:12px;">0.25 – 0.45</span>
         </div>
         <div style="display:flex; align-items:center; margin-bottom:10px;">
             <span style="width:28px; height:5px; background:#5DCAA5; display:inline-block;
                          border-radius:3px; margin-right:10px;"></span>
             <strong style="color:#5DCAA5;">Low risk</strong>
-            <span style="margin-left:auto; color:#aaa; font-size:12px;">0.00 – 0.25</span>
+            <span style="margin-left:auto; color:#888; font-size:12px;">0.00 – 0.25</span>
         </div>
-        <p style="margin:0; color:#888; font-size:11px; border-top:1px solid #333; padding-top:8px;">
+        <p style="margin:0; color:#999; font-size:11px; border-top:1px solid #eee; padding-top:8px;">
             Score = weighted composite of<br>speed alignment · VRU exposure · infrastructure
         </p>
     </div>
@@ -263,35 +263,35 @@ def _build_stats_html(gdf: gpd.GeoDataFrame) -> str:
 
     return f"""
     <div style="position:fixed; top:20px; right:60px; z-index:9999;
-                background:rgba(20,20,35,0.92); color:white;
-                padding:14px 18px; border-radius:10px;
+                background:rgba(255,255,255,0.95); color:#333;
+                padding:14px 18px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15);
                 font-family:-apple-system, BlinkMacSystemFont, sans-serif;
                 font-size:13px; width:220px;">
-        <p style="margin:0 0 10px; font-weight:600;">Network summary</p>
+        <p style="margin:0 0 10px; font-weight:600; color:#222;">Network summary</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <div style="text-align:center; background:rgba(226,75,74,0.2);
+            <div style="text-align:center; background:rgba(226,75,74,0.1);
                         border-radius:6px; padding:8px;">
                 <div style="font-size:22px; font-weight:700; color:#E24B4A;">{n_critical}</div>
-                <div style="font-size:11px; color:#aaa;">Critical</div>
+                <div style="font-size:11px; color:#888;">Critical</div>
             </div>
-            <div style="text-align:center; background:rgba(239,159,39,0.2);
+            <div style="text-align:center; background:rgba(239,159,39,0.1);
                         border-radius:6px; padding:8px;">
                 <div style="font-size:22px; font-weight:700; color:#EF9F27;">{n_high}</div>
-                <div style="font-size:11px; color:#aaa;">High</div>
+                <div style="font-size:11px; color:#888;">High</div>
             </div>
-            <div style="text-align:center; background:rgba(151,196,89,0.15);
+            <div style="text-align:center; background:rgba(151,196,89,0.08);
                         border-radius:6px; padding:8px;">
                 <div style="font-size:22px; font-weight:700; color:#97C459;">{n_medium}</div>
-                <div style="font-size:11px; color:#aaa;">Moderate</div>
+                <div style="font-size:11px; color:#888;">Moderate</div>
             </div>
-            <div style="text-align:center; background:rgba(93,202,165,0.15);
+            <div style="text-align:center; background:rgba(93,202,165,0.08);
                         border-radius:6px; padding:8px;">
                 <div style="font-size:22px; font-weight:700; color:#5DCAA5;">{n_low}</div>
-                <div style="font-size:11px; color:#aaa;">Low risk</div>
+                <div style="font-size:11px; color:#888;">Low risk</div>
             </div>
         </div>
-        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #333;
-                    font-size:12px; color:#aaa;">
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #eee;
+                    font-size:12px; color:#888;">
             {total_km:.0f} km of road analysed<br>
             {pct_critical:.1f}% flagged critical
         </div>
@@ -465,17 +465,17 @@ def _add_budget_widget(m: folium.Map, gdf: gpd.GeoDataFrame) -> None:
     budget_html = f"""
     <div id="budget-widget"
          style="position: fixed; top: 70px; left: 60px; z-index: 1000;
-                background: rgba(20,20,35,0.92); color: white;
-                padding: 12px 16px; border-radius: 8px;
+                background: rgba(255,255,255,0.95); color: #333;
+                padding: 12px 16px; border-radius: 8px; box-shadow:0 2px 12px rgba(0,0,0,0.15);
                 font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; min-width: 260px;">
-        <b>Review Budget</b>
+        <b style="color:#222;">Review Budget</b>
         <div style="margin-top: 6px; display: flex; align-items: center; gap: 10px;">
             <span id="budget-value" style="font-weight: bold; min-width: 60px;">{min(500, total_critical_km)} km</span>
             <input type="range" id="budget-slider"
                    min="0" max="{total_km}" step="{step}" value="{min(500, total_critical_km)}"
                    style="flex: 1;">
         </div>
-        <div style="margin-top: 4px; font-size: 11px; color: #aaa;">
+        <div style="margin-top: 4px; font-size: 11px; color: #888;">
             Critical/High: <span id="critical-km">{total_critical_km}</span> km total
             &middot; <span id="budget-segments">0</span> segments highlighted
         </div>
@@ -545,7 +545,7 @@ def create_interactive_map(
     m = folium.Map(
         location=center,
         zoom_start=5,
-        tiles="cartodbdark_matter",
+        tiles="cartodbpositron",
         control_scale=True,
         prefer_canvas=True,
     )
@@ -571,9 +571,9 @@ def create_interactive_map(
             fields=[priority_col],
             aliases=["Priority"],
             labels=False,
-            style="background:#1a1a2e; color:white; border:none;"
+            style="background:rgba(255,255,255,0.95); color:#333; border:1px solid #ddd;"
                   " border-radius:4px; padding:6px 10px; font-size:13px;"
-                  " font-family:sans-serif;",
+                  " font-family:sans-serif; box-shadow:0 1px 4px rgba(0,0,0,0.15);",
         ),
         smooth_factor=0.5,
     ).add_to(m)
@@ -614,7 +614,7 @@ def create_interactive_map(
                 : (operatingGap > 0 ? 'Traffic speed exceeds Safe System threshold' : '');
 
             return '<div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;min-width:260px;">'
-                + '<div style="background:#1a1a2e;color:white;padding:8px 12px;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:space-between;">'
+                + '<div style="background:#f5f5f5;color:#222;padding:8px 12px;border-radius:6px 6px 0 0;border:1px solid #e0e0e0;border-bottom:none;display:flex;align-items:center;justify-content:space-between;">'
                 + '<strong style="font-size:14px;">' + escapeHtml(tier) + '</strong>'
                 + '<span style="font-size:20px;font-weight:700;">' + Number(score).toFixed(2) + '</span>'
                 + '</div>'
