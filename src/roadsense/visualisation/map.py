@@ -454,8 +454,10 @@ def _add_budget_widget(m: folium.Map, gdf: gpd.GeoDataFrame) -> None:
     if length_col not in gdf.columns:
         return
 
+    priority_col = "priority_class" if "priority_class" in gdf.columns else "risk_tier"
+
     total_critical_km = int(
-        gdf[gdf["priority_class"].isin(CRITICAL_LABELS | HIGH_LABELS)][length_col].sum() / 1000
+        gdf[gdf[priority_col].isin(CRITICAL_LABELS | HIGH_LABELS)][length_col].sum() / 1000
     )
     total_km = int(gdf[length_col].sum() / 1000)
     step = max(1, total_km // 100)
@@ -542,10 +544,14 @@ def create_interactive_map(
 
     m = folium.Map(
         location=center,
-        zoom_start=6,
+        zoom_start=5,
         tiles="cartodbdark_matter",
         control_scale=True,
+        prefer_canvas=True,
     )
+
+    # Fit map to data bounds so both countries are visible
+    m.fit_bounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]])
 
     # Custom popup on click via GeoJson with popup function
     # Auto-detect priority/tier column
