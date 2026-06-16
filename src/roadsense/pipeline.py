@@ -8,6 +8,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 from loguru import logger
+from scipy.spatial import cKDTree
 
 from roadsense.config import (
     SCORE_WEIGHTS,
@@ -45,6 +46,118 @@ def add_log_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def impute_low_sample_scores(
+    df: gpd.GeoDataFrame,
+    score_cols: list[str] | None = None,
+    sample_col: str | None = None,
+    threshold: int = 1000,
+    n_neighbors: int = 8,
+) -> gpd.GeoDataFrame:
+    """Impute scores for low-sample segments via spatial interpolation.
+
+    For segments with sample size < threshold, replaces scores with a
+    distance-weighted average of the nearest high-sample neighbors sharing
+    the same RoadClass and LandUse. Neighbor weights combine:
+      - inverse squared distance (spatial proximity)
+      - sample size (data quality)
+
+    Creates shadow columns prefixed with ``imputed_`` so original values
+    are preserved. Returns a copy to avoid mutating the caller's frame.
+    """
+    df = df.copy()
+
+    if sample_col is None:
+        for candidate in ["SampleSize_avg", "obs_count", "sample_size"]:
+            if candidate in df.columns:
+                sample_col = candidate
+                break
+    if sample_col is None or sample_col not in df.columns:
+        logger.info("  Imputation: no sample-size column found — skipping")
+        return df
+    mask = df[sample_col] < threshold
+    low_n = mask.sum()
+    if low_n == 0:
+        logger.info(f"  Imputation: 0 low-sample segments (threshold={threshold})")
+        return df
+
+    if score_cols is None:
+        score_cols = [c for c in [
+            "speed_safety_score", "vru_risk_score",
+            "limit_gap", "operating_gap",
+            "SSS", "A_score", "B_score", "C_score",
+        ] if c in df.columns]
+
+    # Reproject to Web Mercator for distance-based neighbour search
+    if df.crs is None or df.crs.is_geographic:
+        geo = df.to_crs("EPSG:3857")
+    else:
+        geo = df
+
+    coords = np.column_stack([
+        geo.geometry.centroid.x.values,
+        geo.geometry.centroid.y.values,
+    ])
+    tree = cKDTree(coords)
+
+    high_mask = ~mask
+    high_idx = np.where(high_mask)[0]
+    low_idx = np.where(mask)[0]
+
+    high_sample = df[sample_col].values.astype(float)
+
+    # Map column names — handle both ADB and RoadSense schemas
+    rc_col = "RoadClass" if "RoadClass" in df.columns else "functional_class"
+    lu_col = "LandUse" if "LandUse" in df.columns else "urban_rural"
+
+    imputed_count = 0
+    for i in low_idx:
+        # Restrict to neighbours with same road class + land use
+        same_class = (
+            df[rc_col].values == df[rc_col].values[i]
+        ) & (
+            df[lu_col].values == df[lu_col].values[i]
+        )
+        candidates = high_mask & same_class
+        cand_idx = np.where(candidates)[0]
+        if len(cand_idx) == 0:
+            continue
+
+        # Query KDTree for closest neighbours among candidates
+        k = min(n_neighbors, len(cand_idx))
+        # Build a sub-tree from candidate indices
+        sub_coords = coords[cand_idx]
+        sub_tree = cKDTree(sub_coords)
+        dists, nn_local = sub_tree.query(coords[i].reshape(1, -1), k=k)
+        dists = dists.flatten()
+        nn_local = nn_local.flatten()
+        nn_global = cand_idx[nn_local]
+
+        # Avoid zero-division: any zero-distance neighbours get full weight
+        eps = 1e-6
+        inv_dist2 = 1.0 / (dists**2 + eps)
+        weights = inv_dist2 * high_sample[nn_global]
+        weight_sum = weights.sum()
+        if weight_sum == 0:
+            continue
+
+        for col in score_cols:
+            if col not in df.columns:
+                continue
+            vals = df[col].values[nn_global]
+            # Skip NaN neighbours
+            valid = ~np.isnan(vals)
+            if not valid.any():
+                continue
+            w = weights[valid]
+            w = w / w.sum()
+            imputed_val = np.average(vals[valid], weights=w)
+            df.at[df.index[i], f"imputed_{col}"] = imputed_val
+        imputed_count += 1
+
+    logger.info(f"  Imputation: {imputed_count}/{low_n} low-sample segments imputed (threshold={threshold})")
+    return df
+
+
 def print_kpis_4component(df: pd.DataFrame) -> None:
     """Print network KPIs for 4-component scoring output."""
     total_km = df["Shape_Length"].sum() / 1000
@@ -76,6 +189,8 @@ def print_kpis_roadsense(df: pd.DataFrame) -> None:
 def run_pipeline_4component(
     data_dir: str | Path = RAW_DATA_DIR,
     out_dir: str | Path = OUTPUT_DIR,
+    weights: dict[str, float] | None = None,
+    impute_low_sample: bool = False,
 ) -> gpd.GeoDataFrame:
     """Single-shot 4-component pipeline."""
     logger.info("── 4-Component Pipeline ───────────────────────────")
@@ -83,7 +198,7 @@ def run_pipeline_4component(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     df = load_and_clean(data_dir)
-    df = score_dataframe_4component(df)
+    df = score_dataframe_4component(df, weights=weights)
 
     # Reliability tier (data quality signal — not a scoring input)
     ss_col = "SampleSize_avg"
@@ -91,6 +206,16 @@ def run_pipeline_4component(
         tier_results = df[ss_col].apply(compute_reliability_tier).tolist()
         df["reliability_tier"] = [r[0] for r in tier_results]
         df["reliability_colour"] = [r[1] for r in tier_results]
+
+    if impute_low_sample:
+        score_cols = [c for c in ["speed_safety_score", "vru_risk_score", "limit_gap", "operating_gap"] if c in df.columns]
+        df = impute_low_sample_scores(df, score_cols=score_cols)
+        imputed_col = f"imputed_{score_cols[0]}" if score_cols else None
+        if imputed_col and imputed_col in df.columns:
+            df["reliability_tier"] = df["reliability_tier"].where(
+                df[imputed_col].isna(),
+                df["reliability_tier"] + " (imputed)"
+            )
 
     df = add_centroids(df)
     df = add_log_features(df)
@@ -104,6 +229,8 @@ def run_pipeline_4component(
 def run_pipeline_roadsense(
     data_dir: str | Path = RAW_DATA_DIR,
     out_dir: str | Path = OUTPUT_DIR,
+    module_weights: dict[str, float] | None = None,
+    impute_low_sample: bool = False,
 ) -> gpd.GeoDataFrame:
     """Single-shot 3-module RoadSense pipeline."""
     logger.info("── RoadSense 3-Module Pipeline ────────────────────")
@@ -112,7 +239,25 @@ def run_pipeline_roadsense(
 
     df = load_and_clean(data_dir)
     df = map_to_roadsense_schema(df)
-    df = score_dataframe_roadsense(df)
+    df = score_dataframe_roadsense(df, module_weights=module_weights)
+
+    # Reliability tier (data quality signal — not a scoring input)
+    ss_col = "SampleSize_avg" if "SampleSize_avg" in df.columns else "obs_count"
+    if ss_col in df.columns:
+        tier_results = df[ss_col].apply(compute_reliability_tier).tolist()
+        df["reliability_tier"] = [r[0] for r in tier_results]
+        df["reliability_colour"] = [r[1] for r in tier_results]
+
+    if impute_low_sample:
+        score_cols = [c for c in ["SSS", "A_score", "B_score", "C_score"] if c in df.columns]
+        df = impute_low_sample_scores(df, score_cols=score_cols)
+        imputed_col = f"imputed_{score_cols[0]}" if score_cols else None
+        if imputed_col and imputed_col in df.columns:
+            df["reliability_tier"] = df["reliability_tier"].where(
+                df[imputed_col].isna(),
+                df["reliability_tier"] + " (imputed)"
+            )
+
     df = add_centroids(df)
     print_kpis_roadsense(df)
 

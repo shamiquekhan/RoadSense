@@ -10,6 +10,9 @@ Usage:
     python run_pipeline.py                                          # default: both approaches
     python run_pipeline.py --approach 4component                     # 4-component only
     python run_pipeline.py --approach roadsense                      # 3-module only
+    python run_pipeline.py --weights '{"vru_exposure": 0.40, ...}'   # custom component weights
+    python run_pipeline.py --module-weights '{"module_a": 0.40,...}' # custom module weights
+    python run_pipeline.py --policy pedestrian-first                  # preset weight profile
     python run_pipeline.py --pbf <path>.osm.pbf                      # OSM enrichment via pyrosm
     python run_pipeline.py --osm                                     # OSM via Overpass (fallback)
     python run_pipeline.py --serve                                   # host map via http
@@ -18,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -58,6 +62,23 @@ def main() -> int:
         help="PBF file(s) for OSM-based urban/rural classification improvement"
     )
     parser.add_argument(
+        "--weights", type=str, default=None,
+        help='JSON override for 4-component weights. e.g. \'{"vru_exposure": 0.40, "limit_misalignment": 0.20, "operating_speed": 0.25, "volume": 0.15}\''
+    )
+    parser.add_argument(
+        "--module-weights", type=str, default=None,
+        help='JSON override for 3-module weights. e.g. \'{"module_a": 0.30, "module_b": 0.45, "module_c": 0.25}\''
+    )
+    parser.add_argument(
+        "--policy", type=str, default=None,
+        choices=["pedestrian-first", "speed-first", "balanced", "volume-weighted"],
+        help='Preset weight profile for policy scenario customization'
+    )
+    parser.add_argument(
+        "--impute-low-sample", action="store_true",
+        help="Spatially impute scores for low-sample segments (<1000 obs)"
+    )
+    parser.add_argument(
         "--serve", action="store_true",
         help="Start a local HTTP server to view the map"
     )
@@ -71,13 +92,60 @@ def main() -> int:
     out_dir = Path(args.outdir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Resolve weights from policy presets or JSON overrides
+    weights: dict[str, float] | None = None
+    module_weights: dict[str, float] | None = None
+
+    POLICY_PRESETS: dict[str, dict[str, dict[str, float]]] = {
+        "pedestrian-first": {
+            "component": {"limit_misalignment": 0.20, "operating_speed": 0.20, "vru_exposure": 0.45, "volume": 0.15},
+            "module": {"module_a": 0.25, "module_b": 0.50, "module_c": 0.25},
+        },
+        "speed-first": {
+            "component": {"limit_misalignment": 0.40, "operating_speed": 0.40, "vru_exposure": 0.10, "volume": 0.10},
+            "module": {"module_a": 0.50, "module_b": 0.25, "module_c": 0.25},
+        },
+        "balanced": {
+            "component": {"limit_misalignment": 0.30, "operating_speed": 0.30, "vru_exposure": 0.25, "volume": 0.15},
+            "module": {"module_a": 0.35, "module_b": 0.35, "module_c": 0.30},
+        },
+        "volume-weighted": {
+            "component": {"limit_misalignment": 0.25, "operating_speed": 0.25, "vru_exposure": 0.20, "volume": 0.30},
+            "module": {"module_a": 0.30, "module_b": 0.30, "module_c": 0.40},
+        },
+    }
+
+    if args.policy:
+        preset = POLICY_PRESETS[args.policy]
+        weights = preset["component"]
+        module_weights = preset["module"]
+        print(f"  Policy profile: {args.policy}")
+        print(f"    Component weights: {weights}")
+        print(f"    Module weights:    {module_weights}")
+
+    if args.weights:
+        weights = json.loads(args.weights)
+        total = sum(weights.values())
+        if abs(total - 1.0) > 0.01:
+            print(f"  Warning: component weights sum to {total:.3f}, normalising...")
+            weights = {k: v / total for k, v in weights.items()}
+        print(f"  Component weights: {weights}")
+
+    if args.module_weights:
+        module_weights = json.loads(args.module_weights)
+        total = sum(module_weights.values())
+        if abs(total - 1.0) > 0.01:
+            print(f"  Warning: module weights sum to {total:.3f}, normalising...")
+            module_weights = {k: v / total for k, v in module_weights.items()}
+        print(f"  Module weights:    {module_weights}")
+
     if args.approach in ("4component", "both"):
         print("\n═══ 4-Component Pipeline ═══════════════════════════\n")
-        df = run_pipeline_4component(data_dir, out_dir)
+        df = run_pipeline_4component(data_dir, out_dir, weights=weights, impute_low_sample=args.impute_low_sample)
 
     if args.approach in ("roadsense", "both"):
         print("\n═══ RoadSense 3-Module Pipeline ════════════════════\n")
-        df = run_pipeline_roadsense(data_dir, out_dir)
+        df = run_pipeline_roadsense(data_dir, out_dir, module_weights=module_weights, impute_low_sample=args.impute_low_sample)
 
     if args.pbf:
         print("\n═══ OSM Enrichment (pyrosm) ════════════════════════\n")

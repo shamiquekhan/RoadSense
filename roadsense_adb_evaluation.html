@@ -1,0 +1,114 @@
+
+<style>
+.eval-section { margin: 0 0 1.5rem; }
+.eval-section h3 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 0.75rem; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+.score-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem; text-align: center; }
+.score-card .label { font-size: 11px; color: var(--color-text-secondary); line-height: 1.3; margin-bottom: 6px; }
+.score-card .val { font-size: 20px; font-weight: 500; }
+.score-card .max { font-size: 11px; color: var(--color-text-secondary); }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-row .bar-label { font-size: 12px; color: var(--color-text-secondary); width: 190px; flex-shrink: 0; }
+.bar-track { flex: 1; background: var(--color-background-secondary); border-radius: 4px; height: 10px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
+.bar-row .bar-num { font-size: 12px; color: var(--color-text-secondary); width: 36px; text-align: right; flex-shrink: 0; }
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin: 2px 3px 2px 0; }
+.tag-green { background: var(--color-background-success); color: var(--color-text-success); }
+.tag-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+.tag-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+.tag-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.item-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 13px; color: var(--color-text-primary); line-height: 1.5; }
+.item-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.gap-item { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.6rem 0.9rem; margin-bottom: 8px; font-size: 13px; color: var(--color-text-primary); line-height: 1.5; }
+.gap-title { font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.gap-body { color: var(--color-text-secondary); font-size: 12px; }
+.verdict { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; display: flex; gap: 16px; align-items: center; margin-bottom: 1.5rem; }
+.verdict-score { font-size: 36px; font-weight: 500; color: var(--color-text-primary); flex-shrink: 0; }
+.verdict-text { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.verdict-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+</style>
+
+<h2 style="font-size:18px;font-weight:500;color:var(--color-text-primary);margin:0 0 1.25rem;">RoadSense — ADB Challenge Evaluation</h2>
+
+<div class="verdict">
+  <div>
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;">overall readiness</div>
+    <div class="verdict-score">62<span style="font-size:18px;color:var(--color-text-secondary)">/100</span></div>
+  </div>
+  <div>
+    <div class="verdict-label">Solid scaffold, thin on substance</div>
+    <div class="verdict-text">Architecture is well-designed and covers all challenge requirements in theory. But with only 2 commits and placeholder citations, the repo looks structured rather than functional. Critical gaps: no actual scoring outputs, no data files, data citations section is blank, and the README run-order still references legacy <code>src.module_*</code> paths that don't match the packaged <code>roadsense.*</code> structure.</div>
+  </div>
+</div>
+
+<div class="eval-section">
+  <h3>Challenge criteria scores (weighted)</h3>
+  <div class="bar-row"><div class="bar-label">Methodological robustness (25%)</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:#3B8BD4"></div></div><div class="bar-num">15/25</div></div>
+  <div class="bar-row"><div class="bar-label">Innovation &amp; scalability (25%)</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#3B8BD4"></div></div><div class="bar-num">18/25</div></div>
+  <div class="bar-row"><div class="bar-label">Accuracy &amp; interpretability (20%)</div><div class="bar-track"><div class="bar-fill" style="width:40%;background:#EF9F27"></div></div><div class="bar-num">8/20</div></div>
+  <div class="bar-row"><div class="bar-label">Policy relevance (20%)</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:#3B8BD4"></div></div><div class="bar-num">12/20</div></div>
+  <div class="bar-row"><div class="bar-label">Visualization clarity (10%)</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:#1D9E75"></div></div><div class="bar-num">9/10</div></div>
+</div>
+
+<div class="eval-section">
+  <h3>What's strong</h3>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>Dual-pipeline design (4-component + 3-module) is genuinely innovative — running two independent methodologies gives built-in internal validation, which is exactly what judges want from "methodological robustness."</span></div>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>Module C with CLIP fallback for street-level imagery is a smart hedge — if Mapillary coverage is thin (common in rural Asia-Pacific), CLIP zero-shot still gets signal from available images.</span></div>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>OSM enrichment paths (both pyrosm and Overpass API) make scalability to other Asia-Pacific countries credible without needing proprietary data.</span></div>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>Dependencies are clean and pinned. ESDA + libpysal for spatial autocorrelation is a well-chosen evaluation tool — Moran's I directly answers the "is your score spatially coherent?" reviewer question.</span></div>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>Makefile, pyproject.toml, .env.example, logging, and test scaffold are all present. The repo signals serious engineering hygiene to reviewers.</span></div>
+  <div class="item-row"><span class="item-icon" style="color:var(--color-text-success)">✓</span><span>Interactive Folium map output is the right default — judges get a working URL without needing GIS software.</span></div>
+</div>
+
+<div class="eval-section">
+  <h3>Critical gaps to fix before June 25</h3>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-red">blocking</span> Data citations section is blank</div>
+    <div class="gap-body">The README literally says "Add the exact citations for each project dataset here." This will signal to judges that the submission isn't complete. Fill in every source: the ADB NDA dataset, OSMnx derivation, Mapillary ML tags, and whichever iRAP/WHO reference speed tables you used for Safe System thresholds.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-red">blocking</span> No scored output files in the repo</div>
+    <div class="gap-body">The README describes output paths (<code>outputs/all_segments_scored.gpkg</code>, <code>outputs/geojson/all_segments_scored.geojson</code>, <code>outputs/maps/roadsense_priority_map.html</code>), but none of these appear to exist in the committed tree. Judges need a working URL for the interactive map and at least sample GeoJSON. Even a 500-segment demo run would validate the pipeline is actually functional.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-red">blocking</span> README run commands don't match package structure</div>
+    <div class="gap-body">The README says run <code>python -m src.preprocessing</code>, <code>python -m src.module_a</code>, etc. But the actual package is at <code>src/roadsense/</code> and the entrypoint is <code>run_pipeline.py</code> (which imports from <code>roadsense.pipeline</code>). These contradictory instructions will confuse anyone trying to reproduce the work, and reproducibility is explicitly 25% of the score.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-amber">important</span> <code>evaluation_results.md</code> doesn't appear populated</div>
+    <div class="gap-body">The README lists <code>docs/evaluation_results.md</code> as a key output, but with only 2 commits the pipeline has likely never been run on the actual ADB data. This document needs real numbers: MAE or RMSE on benchmark segments, Moran's I value, sensitivity analysis results. "Your model should have a clear evaluation methodology" is a submission requirement.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-amber">important</span> Safe System reference speed thresholds need explicit sourcing</div>
+    <div class="gap-body">Module A compares against "Safe System reference speeds" but the specific speed values (e.g. 30 km/h near pedestrians, 50 km/h on urban arterials) need to be explicitly cited — probably iRAP or WHO Speed Management Manual — and that mapping committed to a config file so judges can see exactly what you assumed.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-amber">important</span> Scoring weights config path mismatch</div>
+    <div class="gap-body">README says <code>config/scoring_weights.yaml</code>, <code>run_pipeline.py</code> references <code>configs/scoring_weights.yaml</code> (plural). The <code>configs/</code> directory exists in the tree. Make sure the YAML is actually committed there with real weight values documented and justified.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-blue">polish</span> Minor: missing <code>import os</code> in <code>run_pipeline.py</code></div>
+    <div class="gap-body"><code>os.chdir(out_dir)</code> is called in the <code>--serve</code> branch but <code>os</code> is never imported. Won't cause issues unless someone tests the serve flag, but it'll fail loudly if they do.</div>
+  </div>
+
+  <div class="gap-item">
+    <div class="gap-title"><span class="tag tag-blue">polish</span> Minor: <code>gpd</code> used but not imported in <code>run_pipeline.py</code></div>
+    <div class="gap-body">Line ~100: <code>df_scored = gpd.GeoDataFrame(...)</code> in the pyrosm enrichment branch. <code>geopandas as gpd</code> is not imported at the top of that file. Will raise a <code>NameError</code> when the <code>--pbf</code> flag is used.</div>
+  </div>
+</div>
+
+<div class="eval-section">
+  <h3>Priority action list (9 days left)</h3>
+  <div class="item-row" style="font-size:13px"><span style="color:var(--color-text-danger);font-weight:500;flex-shrink:0;width:60px">Day 1–2</span><span>Get the pipeline running on the actual ADB data. Fix the import errors and run-command mismatch. Commit a real scored GeoJSON and the priority map HTML.</span></div>
+  <div class="item-row" style="font-size:13px"><span style="color:var(--color-text-danger);font-weight:500;flex-shrink:0;width:60px">Day 3</span><span>Write the evaluation results doc with actual numbers (Moran's I, score distribution across tiers, sensitivity table). This is what distinguishes a complete submission.</span></div>
+  <div class="item-row" style="font-size:13px"><span style="color:var(--color-text-warning);font-weight:500;flex-shrink:0;width:60px">Day 4–5</span><span>Fill in the data citations section. Commit <code>configs/scoring_weights.yaml</code> with values and a short justification comment per weight.</span></div>
+  <div class="item-row" style="font-size:13px"><span style="color:var(--color-text-warning);font-weight:500;flex-shrink:0;width:60px">Day 6–7</span><span>Reconcile README run instructions with actual package structure. Add a quick-start section that a reviewer can copy-paste. Fix the <code>os</code> and <code>gpd</code> import bugs.</span></div>
+  <div class="item-row" style="font-size:13px"><span style="color:var(--color-text-info);font-weight:500;flex-shrink:0;width:60px">Day 8–9</span><span>Add a 1-page methodology summary in <code>docs/</code> written for a transport ministry official (non-technical). This directly covers the "interpretability" and "policy relevance" criteria.</span></div>
+</div>

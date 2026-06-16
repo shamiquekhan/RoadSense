@@ -228,12 +228,20 @@ def compute_roadsense_sss(
 
 
 
-def score_dataframe_4component(df: pd.DataFrame) -> pd.DataFrame:
+def score_dataframe_4component(df: pd.DataFrame, weights: dict[str, float] | None = None) -> pd.DataFrame:
     """Apply 4-component composite scoring to a DataFrame.
 
     Expects columns: SpeedLimit, F85thPercentileSpeed, RoadClass, LandUse,
     RankedPercentile. Adds vru_risk_score, speed_safety_score, priority_class,
     score_explanation.
+
+    Parameters
+    ----------
+    weights : dict, optional
+        Override default component weights. Keys: limit_misalignment,
+        operating_speed, vru_exposure, volume. Values must sum to 1.0.
+        Example: {"limit_misalignment": 0.20, "operating_speed": 0.30,
+                  "vru_exposure": 0.35, "volume": 0.15}
     """
     df = df.copy()
     df["safe_system_limit"] = df.apply(
@@ -252,7 +260,7 @@ def score_dataframe_4component(df: pd.DataFrame) -> pd.DataFrame:
         lambda r: compute_composite_score(
             r["SpeedLimit"], r["F85thPercentileSpeed"],
             r["RoadClass"], r["LandUse"], r["RankedPercentile"],
-            r["vru_risk_score"],
+            r["vru_risk_score"], weights=weights,
         ),
         axis=1,
     )
@@ -276,12 +284,19 @@ def _col(df: pd.DataFrame, adb_name: str, rs_name: str) -> str:
     return adb_name if adb_name in df.columns else rs_name
 
 
-def score_dataframe_roadsense(df: pd.DataFrame) -> pd.DataFrame:
+def score_dataframe_roadsense(df: pd.DataFrame, module_weights: dict[str, float] | None = None) -> pd.DataFrame:
     """Apply 3-module RoadSense scoring to a DataFrame.
 
     Accepts both ADB naming (SpeedLimit, F85thPercentileSpeed, RoadClass, LandUse)
     and RoadSense naming (posted_limit, v85, functional_class, urban_rural).
     Adds A_score, B_score, C_score, SSS, risk_tier, score_explanation.
+
+    Parameters
+    ----------
+    module_weights : dict, optional
+        Override default module weights. Keys: module_a, module_b, module_c.
+        Values must sum to 1.0.
+        Example: {"module_a": 0.40, "module_b": 0.30, "module_c": 0.30}
     """
     df = df.copy()
 
@@ -305,7 +320,7 @@ def score_dataframe_roadsense(df: pd.DataFrame) -> pd.DataFrame:
         lambda r: compute_module_c_score(r[rc_col], r[lu_col], r[f85_col], r[sl_col]),
         axis=1,
     )
-    df["SSS"] = compute_roadsense_sss(df["A_score"], df["B_score"], df["C_score"])
+    df["SSS"] = compute_roadsense_sss(df["A_score"], df["B_score"], df["C_score"], weights=module_weights)
     df["safe_system_ref"] = df.apply(
         lambda r: get_safe_system_limit(r[rc_col], r[lu_col]), axis=1
     )
