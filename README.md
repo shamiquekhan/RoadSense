@@ -1,10 +1,19 @@
 # RoadSense
 
+[![CI](https://github.com/shamiquekhan/RoadSense/actions/workflows/ci.yml/badge.svg)](https://github.com/shamiquekhan/RoadSense/actions)
+[![Tests](https://github.com/shamiquekhan/RoadSense/actions/workflows/tests.yml/badge.svg)](https://github.com/shamiquekhan/RoadSense/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 RoadSense is an AI-powered road safety analytics platform that checks whether posted speed limits are genuinely protecting road users or simply numbers on a sign. It combines GPS probe data, road network geometry, street-level imagery, and contextual layers such as schools, markets, and population density to build a segment-by-segment view of risk and produce a transparent Speed Safety Score for policy action.
 
 The score blends three signals: how far the posted limit deviates from observed operating speed, how exposed vulnerable road users are at that location, and what the physical road environment looks like on the ground. Each segment is classified into four risk tiers: Critical, High, Medium, and Low, with plain-language explanations designed for transport ministries and other non-technical decision-makers.
 
 > **Interactive maps (GitHub Pages):** [4-Component Map](https://shamiquekhan.github.io/RoadSense/speed_safety_scores_map.html) · [RoadSense Map](https://shamiquekhan.github.io/RoadSense/roadsense_scores_map.html) · [Landing Page](https://shamiquekhan.github.io/RoadSense/)
+
+## Output Preview
+
+![RoadSense Speed Safety Score map — Thailand and Maharashtra](docs/map_preview.png)
+*Red = Critical risk, Orange = High, Yellow = Moderate, Green = Low. See the live interactive map linked above.*
 
 ## Pipeline Overview
 
@@ -168,6 +177,10 @@ This project uses the following data sources:
 | Safe System Reference Speeds | WHO / iRAP / ITF-OECD | Open access | World Health Organization. (2021). *Global Plan for the Decade of Action for Road Safety 2021–2030*. Geneva: WHO. https://www.who.int/publications/i/item/9789240032817 |
 | Pedestrian Fatality Risk Curve | ITF/OECD | Open access | ITF/OECD. (2018). *Speed and Crash Risk*. International Transport Forum Research Report. Paris: OECD Publishing. https://www.itf-oecd.org/speed-and-crash-risk |
 | Points of Interest (Schools, Markets) | OpenStreetMap / Overpass API | ODbL 1.0 | OpenStreetMap contributors. See above. |
+
+## Findings Summary
+
+[Download DOCX](docs/findings_summary.docx) — 4-page policy brief covering methodology, key findings, and replication guidance for ADB member countries.
 
 ## Licence
 
