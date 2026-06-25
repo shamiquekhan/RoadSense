@@ -39,15 +39,30 @@ def set_table_borders(table):
     tblPr.append(borders)
 
 
+def add_horizontal_rule(doc):
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(4)
+    p.paragraph_format.space_after = Pt(4)
+    pPr = p._p.get_or_add_pPr()
+    pBdr = OxmlElement("w:pBdr")
+    bottom = OxmlElement("w:bottom")
+    bottom.set(qn("w:val"), "single")
+    bottom.set(qn("w:sz"), "6")
+    bottom.set(qn("w:space"), "1")
+    bottom.set(qn("w:color"), "CCCCCC")
+    pBdr.append(bottom)
+    pPr.append(pBdr)
+
+
 def build_docx(md_path: Path, docx_path: Path):
     doc = Document()
 
     # Page setup (margins)
     for section in doc.sections:
-        section.top_margin = Inches(1.0)
-        section.bottom_margin = Inches(1.0)
-        section.left_margin = Inches(1.0)
-        section.right_margin = Inches(1.0)
+        section.top_margin = Inches(0.75)
+        section.bottom_margin = Inches(0.75)
+        section.left_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
         section.page_width = Inches(8.5)
         section.page_height = Inches(11.0)
 
@@ -55,7 +70,7 @@ def build_docx(md_path: Path, docx_path: Path):
     normal_style = doc.styles["Normal"]
     normal_font = normal_style.font
     normal_font.name = "Calibri"
-    normal_font.size = Pt(11)
+    normal_font.size = Pt(10)
     normal_font.color.rgb = RGBColor(0x33, 0x33, 0x33)
 
     # Read Markdown
@@ -89,47 +104,47 @@ def build_docx(md_path: Path, docx_path: Path):
         # Headings
         if line.startswith("# "):
             p = doc.add_heading(line[2:], level=1)
-            p.paragraph_format.space_before = Pt(18)
-            p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_after = Pt(3)
             p.paragraph_format.keep_with_next = True
             for run in p.runs:
                 run.font.name = "Calibri"
-                run.font.size = Pt(18)
+                run.font.size = Pt(15)
                 run.font.bold = True
                 run.font.color.rgb = RGBColor(0x1B, 0x36, 0x5D)  # Dark Blue
         elif line.startswith("## "):
             p = doc.add_heading(line[3:], level=2)
-            p.paragraph_format.space_before = Pt(14)
-            p.paragraph_format.space_after = Pt(4)
-            p.paragraph_format.keep_with_next = True
-            for run in p.runs:
-                run.font.name = "Calibri"
-                run.font.size = Pt(14)
-                run.font.bold = True
-                run.font.color.rgb = RGBColor(0x2E, 0x5B, 0x88)  # Muted Blue
-        elif line.startswith("### "):
-            p = doc.add_heading(line[4:], level=3)
-            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_before = Pt(8)
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.keep_with_next = True
             for run in p.runs:
                 run.font.name = "Calibri"
                 run.font.size = Pt(12)
                 run.font.bold = True
+                run.font.color.rgb = RGBColor(0x2E, 0x5B, 0x88)  # Muted Blue
+        elif line.startswith("### "):
+            p = doc.add_heading(line[4:], level=3)
+            p.paragraph_format.space_before = Pt(6)
+            p.paragraph_format.space_after = Pt(1)
+            p.paragraph_format.keep_with_next = True
+            for run in p.runs:
+                run.font.name = "Calibri"
+                run.font.size = Pt(11)
+                run.font.bold = True
                 run.font.color.rgb = RGBColor(0x55, 0x55, 0x55)  # Dark Grey
         # Blockquote / Note
         elif line.startswith("> "):
             p = doc.add_paragraph()
-            p.paragraph_format.left_indent = Inches(0.4)
-            p.paragraph_format.space_before = Pt(6)
-            p.paragraph_format.space_after = Pt(6)
+            p.paragraph_format.left_indent = Inches(0.3)
+            p.paragraph_format.space_before = Pt(3)
+            p.paragraph_format.space_after = Pt(3)
             run = p.add_run(line[2:])
             run.font.italic = True
             run.font.color.rgb = RGBColor(0x66, 0x66, 0x66)
         # Bullet list
         elif line.startswith("- ") or line.startswith("* "):
             p = doc.add_paragraph(style="List Bullet")
-            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.space_after = Pt(1)
             # Simple bold formatting parser
             text = line[2:]
             parse_bold_runs(p, text)
@@ -137,17 +152,17 @@ def build_docx(md_path: Path, docx_path: Path):
         elif line[0].isdigit() and line[1:3] == ". ":
             p = doc.add_paragraph()
             p.paragraph_format.left_indent = Inches(0.25)
-            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.space_after = Pt(1)
             text = line
             parse_bold_runs(p, text)
-        # Section separator
+        # Section separator — thin rule instead of page break
         elif line == "---":
-            doc.add_page_break()
+            add_horizontal_rule(doc)
         # Normal paragraph
         else:
             p = doc.add_paragraph()
-            p.paragraph_format.space_after = Pt(6)
-            p.paragraph_format.line_spacing = 1.15
+            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.line_spacing = 1.0
             parse_bold_runs(p, line)
 
         i += 1
@@ -197,23 +212,23 @@ def parse_and_add_table(doc, table_rows):
             cell = row.cells[col_idx]
             cell.text = ""
             p = cell.paragraphs[0]
-            p.paragraph_format.space_before = Pt(4)
-            p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.space_before = Pt(1)
+            p.paragraph_format.space_after = Pt(1)
 
             run = p.add_run(text)
             run.font.name = "Calibri"
             if is_header:
                 run.font.bold = True
-                run.font.size = Pt(10.5)
+                run.font.size = Pt(9)
                 run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
                 set_cell_background(cell, "1B365D")  # Dark Blue header
             else:
-                run.font.size = Pt(10)
+                run.font.size = Pt(8.5)
                 # Alternating row shading
                 if row_idx % 2 == 1:
                     set_cell_background(cell, "F5F7FA")  # Off-white
 
-            set_cell_margins(cell, top=80, bottom=80, left=120, right=120)
+            set_cell_margins(cell, top=30, bottom=30, left=60, right=60)
 
 
 if __name__ == "__main__":

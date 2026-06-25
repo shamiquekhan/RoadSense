@@ -15,6 +15,7 @@ data/raw/*
 !data/raw/ADB_Innovation_*.geojson
 data/pbf/
 data/processed/
+data/Archive-*/
 
 # Outputs (generated — demo results committed)
 outputs/*
