@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
-import html
 import warnings
 
 import joblib
@@ -36,7 +35,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
 
 FULL_FEATURES = [
     "SpeedLimit",
@@ -118,7 +116,9 @@ def restore_original_units(df: pd.DataFrame, input_path: Path) -> pd.DataFrame:
     return out
 
 
-def leakage_audit(df: pd.DataFrame, target_col: str = "PercentOverLimit") -> pd.DataFrame:
+def leakage_audit(
+    df: pd.DataFrame, target_col: str = "PercentOverLimit"
+) -> pd.DataFrame:
     if target_col not in df.columns:
         raise KeyError(f"Target column missing: {target_col}")
 
@@ -143,7 +143,13 @@ def leakage_audit(df: pd.DataFrame, target_col: str = "PercentOverLimit") -> pd.
 
         name_suspect = any(
             token in col.lower()
-            for token in ["percentile", "numberoverlimit", "speed_excess", "median", "f85th"]
+            for token in [
+                "percentile",
+                "numberoverlimit",
+                "speed_excess",
+                "median",
+                "f85th",
+            ]
         )
         corr_flag = bool(pd.notna(corr) and abs(corr) >= 0.5)
         rows.append(
@@ -159,7 +165,10 @@ def leakage_audit(df: pd.DataFrame, target_col: str = "PercentOverLimit") -> pd.
 
     out = pd.DataFrame(rows)
     if not out.empty:
-        out = out.sort_values(["audit_flag", "high_corr_flag", "pearson_corr"], ascending=[False, False, False])
+        out = out.sort_values(
+            ["audit_flag", "high_corr_flag", "pearson_corr"],
+            ascending=[False, False, False],
+        )
     return out
 
 
@@ -202,7 +211,12 @@ def evaluate(y_true, y_pred) -> dict:
     }
 
 
-def fit_and_score(train_df: pd.DataFrame, test_df: pd.DataFrame, features: list[str], model_name: str = "RandomForest") -> dict:
+def fit_and_score(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    features: list[str],
+    model_name: str = "RandomForest",
+) -> dict:
     X_train = train_df[features].copy()
     y_train = train_df["PercentOverLimit"].copy()
     X_test = test_df[features].copy()
@@ -213,16 +227,22 @@ def fit_and_score(train_df: pd.DataFrame, test_df: pd.DataFrame, features: list[
     else:
         estimator = RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1)
 
-    pipeline = Pipeline(steps=[("preprocess", make_preprocessor(features)), ("model", estimator)])
+    pipeline = Pipeline(
+        steps=[("preprocess", make_preprocessor(features)), ("model", estimator)]
+    )
     pipeline.fit(X_train, y_train)
     preds = pipeline.predict(X_test)
 
     return evaluate(y_test, preds)
 
 
-def build_report(report_path: Path, audit_df: pd.DataFrame, metrics_df: pd.DataFrame) -> None:
+def build_report(
+    report_path: Path, audit_df: pd.DataFrame, metrics_df: pd.DataFrame
+) -> None:
     ensure_dir(report_path)
-    pieces = ["<html><head><meta charset='utf-8'><title>Spatial Validation Report</title>"]
+    pieces = [
+        "<html><head><meta charset='utf-8'><title>Spatial Validation Report</title>"
+    ]
     pieces.append(
         "<style>body{font-family:Arial,sans-serif;max-width:1200px;margin:24px auto;line-height:1.45}"
         "table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}"
@@ -230,19 +250,43 @@ def build_report(report_path: Path, audit_df: pd.DataFrame, metrics_df: pd.DataF
     )
     pieces.append("<h1>Leakage Audit and Spatial Validation</h1>")
     pieces.append("<h2>Leakage audit</h2>")
-    pieces.append(audit_df.to_html(index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""))
+    pieces.append(
+        audit_df.to_html(
+            index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""
+        )
+    )
     pieces.append("<h2>Spatial validation metrics</h2>")
-    pieces.append(metrics_df.to_html(index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""))
+    pieces.append(
+        metrics_df.to_html(
+            index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""
+        )
+    )
     pieces.append("</body></html>")
     report_path.write_text("\n".join(pieces), encoding="utf-8")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Leakage audit and spatial validation for RoadSense")
-    parser.add_argument("--input", type=Path, default=Path("RoadSense/outputs/processed_road_safety.gpkg"))
-    parser.add_argument("--audit-path", type=Path, default=Path("reports/leakage_audit.csv"))
-    parser.add_argument("--metrics-path", type=Path, default=Path("reports/spatial_validation_metrics.csv"))
-    parser.add_argument("--report-path", type=Path, default=Path("reports/spatial_validation_report.html"))
+    parser = argparse.ArgumentParser(
+        description="Leakage audit and spatial validation for RoadSense"
+    )
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("RoadSense/outputs/processed_road_safety.gpkg"),
+    )
+    parser.add_argument(
+        "--audit-path", type=Path, default=Path("reports/leakage_audit.csv")
+    )
+    parser.add_argument(
+        "--metrics-path",
+        type=Path,
+        default=Path("reports/spatial_validation_metrics.csv"),
+    )
+    parser.add_argument(
+        "--report-path",
+        type=Path,
+        default=Path("reports/spatial_validation_report.html"),
+    )
     args = parser.parse_args()
 
     gdf = load_gdf(args.input)
@@ -258,17 +302,25 @@ def main():
 
     region_values = [r for r in df["region"].dropna().astype(str).unique().tolist()]
     if len(region_values) < 2:
-        raise ValueError(f"Need at least two regions for spatial validation; found {region_values}")
+        raise ValueError(
+            f"Need at least two regions for spatial validation; found {region_values}"
+        )
 
     rows = []
-    for train_region, test_region in [("Thailand", "Maharashtra"), ("Maharashtra", "Thailand")]:
+    for train_region, test_region in [
+        ("Thailand", "Maharashtra"),
+        ("Maharashtra", "Thailand"),
+    ]:
         train_df = df[df["region"].astype(str) == train_region].copy()
         test_df = df[df["region"].astype(str) == test_region].copy()
 
         if train_df.empty or test_df.empty:
             continue
 
-        for feature_set_name, features in [("full", FULL_FEATURES), ("safe", SAFE_FEATURES)]:
+        for feature_set_name, features in [
+            ("full", FULL_FEATURES),
+            ("safe", SAFE_FEATURES),
+        ]:
             # drop rows missing any of the chosen features for this evaluation
             train_eval = train_df.dropna(subset=["PercentOverLimit"] + features)
             test_eval = test_df.dropna(subset=["PercentOverLimit"] + features)
@@ -276,7 +328,9 @@ def main():
                 continue
 
             for model_name in ["LinearRegression", "RandomForestRegressor"]:
-                metrics = fit_and_score(train_eval, test_eval, features, model_name=model_name)
+                metrics = fit_and_score(
+                    train_eval, test_eval, features, model_name=model_name
+                )
                 rows.append(
                     {
                         "train_region": train_region,

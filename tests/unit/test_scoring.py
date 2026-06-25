@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-import math
-
-import numpy as np
-import pandas as pd
 import pytest
 
 from roadsense.scoring import (
@@ -14,11 +10,6 @@ from roadsense.scoring import (
     operating_speed_risk_score,
     pedestrian_fatality_risk,
     vru_exposure,
-    compute_vru_risk,
-    compute_composite_score,
-    compute_module_a_score,
-    compute_module_b_score,
-    compute_module_c_score,
     classify_priority,
     explain_score,
     score_dataframe_4component,

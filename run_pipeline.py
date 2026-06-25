@@ -79,6 +79,10 @@ def main() -> int:
         help="Spatially impute scores for low-sample segments (<1000 obs)"
     )
     parser.add_argument(
+        "--use-sample", action="store_true",
+        help="Use sample GeoJSON files instead of full GPKG datasets"
+    )
+    parser.add_argument(
         "--serve", action="store_true",
         help="Start a local HTTP server to view the map"
     )
@@ -141,17 +145,17 @@ def main() -> int:
 
     if args.approach in ("4component", "both"):
         print("\n═══ 4-Component Pipeline ═══════════════════════════\n")
-        df = run_pipeline_4component(data_dir, out_dir, weights=weights, impute_low_sample=args.impute_low_sample)
+        df = run_pipeline_4component(data_dir, out_dir, weights=weights, impute_low_sample=args.impute_low_sample, use_sample=args.use_sample)
 
     if args.approach in ("roadsense", "both"):
         print("\n═══ RoadSense 3-Module Pipeline ════════════════════\n")
-        df = run_pipeline_roadsense(data_dir, out_dir, module_weights=module_weights, impute_low_sample=args.impute_low_sample)
+        df = run_pipeline_roadsense(data_dir, out_dir, module_weights=module_weights, impute_low_sample=args.impute_low_sample, use_sample=args.use_sample)
 
     if args.pbf:
         print("\n═══ OSM Enrichment (pyrosm) ════════════════════════\n")
         from roadsense.data.osm_enrich import enrich_with_pyrosm
         from roadsense.data.loader import load_and_clean
-        df_osm = load_and_clean(data_dir)
+        df_osm = load_and_clean(data_dir, use_sample=args.use_sample)
         df_osm = enrich_with_pyrosm(df_osm, [Path(p) for p in args.pbf])
 
         # Add enrichment columns as VRU context before scoring
@@ -178,7 +182,7 @@ def main() -> int:
         print("\n═══ Improved Urban/Rural Classification ═══════════════\n")
         from roadsense.data.loader import load_and_clean
         from roadsense.data.osm_enrich import improve_urban_classification
-        df = load_and_clean(data_dir)
+        df = load_and_clean(data_dir, use_sample=args.use_sample)
         df = improve_urban_classification(df, [Path(p) for p in args.improve_urban])
         urban_changed = (df["urban_source"] == "OSM").sum()
         print(f"  Reclassified {urban_changed}/{len(df)} segments from OSM land use")
@@ -192,7 +196,7 @@ def main() -> int:
     if args.osm:
         print("\n═══ OSM Enrichment (Overpass API) ═══════════════════\n")
         from roadsense.data.loader import load_and_clean
-        df = load_and_clean(data_dir)
+        df = load_and_clean(data_dir, use_sample=args.use_sample)
         df = enrich_with_osm_pois(df)
         enriched_out = out_dir / "enriched_scores_overpass.gpkg"
         df.to_file(enriched_out, driver="GPKG")

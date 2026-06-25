@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import math
 
-import numpy as np
 import pandas as pd
 
 from .config import (
@@ -24,13 +23,11 @@ from .config import (
 )
 
 
-
 def get_safe_system_limit(road_class: str, land_use: str) -> int:
     """Return the Safe System reference speed for a (road_class, land_use) pair."""
     return SAFE_SYSTEM_LIMITS.get(
         (road_class.lower(), land_use.lower()), DEFAULT_SAFE_LIMIT
     )
-
 
 
 def limit_misalignment_score(speed_limit: float, ssl: float) -> float:
@@ -58,7 +55,6 @@ def vru_exposure(road_class: str, land_use: str) -> float:
     return rc * lu
 
 
-
 def compute_vru_risk(
     road_class: str,
     land_use: str,
@@ -80,7 +76,6 @@ def compute_vru_risk(
     return min(base * speed + boost, 1.0)
 
 
-
 def compute_composite_score(
     speed_limit: float,
     f85: float,
@@ -93,7 +88,11 @@ def compute_composite_score(
     """Four-component Speed Safety Score (0–1)."""
     w = weights or SCORE_WEIGHTS
     ssl = get_safe_system_limit(road_class, land_use)
-    vru = vru_risk_score if vru_risk_score is not None else compute_vru_risk(road_class, land_use, f85)
+    vru = (
+        vru_risk_score
+        if vru_risk_score is not None
+        else compute_vru_risk(road_class, land_use, f85)
+    )
 
     A = limit_misalignment_score(speed_limit, ssl)
     B = operating_speed_risk_score(f85, ssl)
@@ -101,7 +100,10 @@ def compute_composite_score(
     D = ranked_percentile / 100.0
 
     return round(
-        w["limit_misalignment"] * A + w["operating_speed"] * B + w["vru_exposure"] * C + w["volume"] * D,
+        w["limit_misalignment"] * A
+        + w["operating_speed"] * B
+        + w["vru_exposure"] * C
+        + w["volume"] * D,
         4,
     )
 
@@ -130,7 +132,9 @@ def compute_module_b_score(
     return round(min(raw, 1.0), 4)
 
 
-def compute_module_c_score(road_class: str, land_use: str, f85: float, posted: float) -> float:
+def compute_module_c_score(
+    road_class: str, land_use: str, f85: float, posted: float
+) -> float:
     """RoadSense Module C: road environment proxy (0–1)."""
     rc = road_class.lower()
     lu = land_use.lower()
@@ -138,8 +142,9 @@ def compute_module_c_score(road_class: str, land_use: str, f85: float, posted: f
     speed_mismatch = max(f85 - posted, 0) / max(posted, 1)
     speed_mismatch = min(speed_mismatch, 1.0)
     urban_secondary_bonus = 0.15 if (rc == "secondary" and lu == "urban") else 0.0
-    return round(min(0.60 * infra_gap + 0.25 * speed_mismatch + urban_secondary_bonus, 1.0), 4)
-
+    return round(
+        min(0.60 * infra_gap + 0.25 * speed_mismatch + urban_secondary_bonus, 1.0), 4
+    )
 
 
 def classify_priority(
@@ -154,7 +159,6 @@ def classify_priority(
         if score >= threshold:
             return label, colour
     return default
-
 
 
 RELIABILITY_TIERS: list[tuple[int, str, str]] = [
@@ -192,7 +196,11 @@ def explain_score(
 ) -> str:
     """Plain-language explanation of what drives this segment's score."""
     ssl = get_safe_system_limit(road_class, land_use)
-    vru = vru_risk_score if vru_risk_score is not None else compute_vru_risk(road_class, land_use, f85)
+    vru = (
+        vru_risk_score
+        if vru_risk_score is not None
+        else compute_vru_risk(road_class, land_use, f85)
+    )
     parts: list[str] = []
     if speed_limit > ssl:
         parts.append(
@@ -224,11 +232,12 @@ def compute_roadsense_sss(
 ) -> float | pd.Series:
     """RoadSense 3-module composite: SSS = w_A * A + w_B * B + w_C * C."""
     w = weights or MODULE_WEIGHTS
-    return (w["module_a"] * a_score + w["module_b"] * b_score + w["module_c"] * c_score)
+    return w["module_a"] * a_score + w["module_b"] * b_score + w["module_c"] * c_score
 
 
-
-def score_dataframe_4component(df: pd.DataFrame, weights: dict[str, float] | None = None) -> pd.DataFrame:
+def score_dataframe_4component(
+    df: pd.DataFrame, weights: dict[str, float] | None = None
+) -> pd.DataFrame:
     """Apply 4-component composite scoring to a DataFrame.
 
     Expects columns: SpeedLimit, F85thPercentileSpeed, RoadClass, LandUse,
@@ -249,7 +258,9 @@ def score_dataframe_4component(df: pd.DataFrame, weights: dict[str, float] | Non
     )
     df["vru_risk_score"] = df.apply(
         lambda r: compute_vru_risk(
-            r["RoadClass"], r["LandUse"], r["F85thPercentileSpeed"],
+            r["RoadClass"],
+            r["LandUse"],
+            r["F85thPercentileSpeed"],
             near_school=r.get("near_school", False),
             near_market=r.get("near_market", False),
             high_ptw_area=r.get("high_ptw_area", False),
@@ -258,9 +269,13 @@ def score_dataframe_4component(df: pd.DataFrame, weights: dict[str, float] | Non
     )
     df["speed_safety_score"] = df.apply(
         lambda r: compute_composite_score(
-            r["SpeedLimit"], r["F85thPercentileSpeed"],
-            r["RoadClass"], r["LandUse"], r["RankedPercentile"],
-            r["vru_risk_score"], weights=weights,
+            r["SpeedLimit"],
+            r["F85thPercentileSpeed"],
+            r["RoadClass"],
+            r["LandUse"],
+            r["RankedPercentile"],
+            r["vru_risk_score"],
+            weights=weights,
         ),
         axis=1,
     )
@@ -271,8 +286,11 @@ def score_dataframe_4component(df: pd.DataFrame, weights: dict[str, float] | Non
     df["priority_colour"] = [r[1] for r in priority_results]
     df["score_explanation"] = df.apply(
         lambda r: explain_score(
-            r["SpeedLimit"], r["F85thPercentileSpeed"],
-            r["RoadClass"], r["LandUse"], r["vru_risk_score"],
+            r["SpeedLimit"],
+            r["F85thPercentileSpeed"],
+            r["RoadClass"],
+            r["LandUse"],
+            r["vru_risk_score"],
         ),
         axis=1,
     )
@@ -284,7 +302,9 @@ def _col(df: pd.DataFrame, adb_name: str, rs_name: str) -> str:
     return adb_name if adb_name in df.columns else rs_name
 
 
-def score_dataframe_roadsense(df: pd.DataFrame, module_weights: dict[str, float] | None = None) -> pd.DataFrame:
+def score_dataframe_roadsense(
+    df: pd.DataFrame, module_weights: dict[str, float] | None = None
+) -> pd.DataFrame:
     """Apply 3-module RoadSense scoring to a DataFrame.
 
     Accepts both ADB naming (SpeedLimit, F85thPercentileSpeed, RoadClass, LandUse)
@@ -311,7 +331,9 @@ def score_dataframe_roadsense(df: pd.DataFrame, module_weights: dict[str, float]
     )
     df["B_score"] = df.apply(
         lambda r: compute_module_b_score(
-            r[rc_col], r[lu_col], r[f85_col],
+            r[rc_col],
+            r[lu_col],
+            r[f85_col],
             ptw_flag=(r[rc_col] in ["trunk", "primary"] and r[f85_col] > 80),
         ),
         axis=1,
@@ -320,7 +342,9 @@ def score_dataframe_roadsense(df: pd.DataFrame, module_weights: dict[str, float]
         lambda r: compute_module_c_score(r[rc_col], r[lu_col], r[f85_col], r[sl_col]),
         axis=1,
     )
-    df["SSS"] = compute_roadsense_sss(df["A_score"], df["B_score"], df["C_score"], weights=module_weights)
+    df["SSS"] = compute_roadsense_sss(
+        df["A_score"], df["B_score"], df["C_score"], weights=module_weights
+    )
     df["safe_system_ref"] = df.apply(
         lambda r: get_safe_system_limit(r[rc_col], r[lu_col]), axis=1
     )

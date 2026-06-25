@@ -6,6 +6,7 @@ Creates `reports/eda_summary.html` and supporting images in `reports/`.
 Usage:
     python scripts/eda_report.py --input RoadSense/outputs/processed_road_safety.gpkg --output reports/eda_summary.html
 """
+
 from pathlib import Path
 import argparse
 import geopandas as gpd
@@ -14,7 +15,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import html
-import sys
 
 
 def ensure_outdir(out_path: Path):
@@ -51,7 +51,7 @@ def save_histograms(df: pd.DataFrame, cols, out_dir: Path):
         try:
             sns.histplot(df[c].dropna(), bins=50, kde=False, ax=ax)
         except Exception:
-            ax.text(0.5, 0.5, f"Unable to plot {c}", ha='center')
+            ax.text(0.5, 0.5, f"Unable to plot {c}", ha="center")
         ax.set_title(c)
         fname = out_dir / f"hist_{c}.png"
         fig.tight_layout()
@@ -70,7 +70,7 @@ def save_boxplots(df: pd.DataFrame, cols, out_dir: Path):
         try:
             sns.boxplot(x=df[c].dropna(), ax=ax)
         except Exception:
-            ax.text(0.5, 0.5, f"Unable to plot {c}", ha='center')
+            ax.text(0.5, 0.5, f"Unable to plot {c}", ha="center")
         ax.set_title(c)
         fname = out_dir / f"box_{c}.png"
         fig.tight_layout()
@@ -86,8 +86,8 @@ def correlation_heatmap(df: pd.DataFrame, out_dir: Path, prefix: str = "corr"):
         return None
     corr = numeric.corr()
     fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(corr, ax=ax, cmap='RdBu_r', center=0)
-    ax.set_title('Correlation matrix')
+    sns.heatmap(corr, ax=ax, cmap="RdBu_r", center=0)
+    ax.set_title("Correlation matrix")
     fname = out_dir / f"{prefix}_heatmap.png"
     fig.tight_layout()
     fig.savefig(fname, dpi=150)
@@ -98,63 +98,75 @@ def correlation_heatmap(df: pd.DataFrame, out_dir: Path, prefix: str = "corr"):
 def region_comparison(df: pd.DataFrame, group_col: str, cols) -> pd.DataFrame:
     if group_col not in df.columns:
         return pd.DataFrame()
-    agg = df.groupby(group_col)[cols].agg(['count', 'mean', 'std', 'min', 'max'])
+    agg = df.groupby(group_col)[cols].agg(["count", "mean", "std", "min", "max"])
     return agg
 
 
 def geometry_report(gdf: gpd.GeoDataFrame) -> dict:
     info = {}
-    info['crs'] = getattr(gdf, 'crs', None)
-    info['total_features'] = len(gdf)
-    info['null_geometry'] = int(gdf.geometry.isnull().sum())
+    info["crs"] = getattr(gdf, "crs", None)
+    info["total_features"] = len(gdf)
+    info["null_geometry"] = int(gdf.geometry.isnull().sum())
     try:
-        info['bounds'] = gdf.total_bounds.tolist()
+        info["bounds"] = gdf.total_bounds.tolist()
     except Exception:
-        info['bounds'] = None
+        info["bounds"] = None
     try:
-        info['geom_types'] = gdf.geometry.geom_type.value_counts().to_dict()
+        info["geom_types"] = gdf.geometry.geom_type.value_counts().to_dict()
     except Exception:
-        info['geom_types'] = {}
+        info["geom_types"] = {}
     return info
 
 
 def build_html(title: str, sections: dict, out_path: Path):
-    pieces = [f"<html><head><meta charset=\"utf-8\"><title>{html.escape(title)}</title></head><body>"]
+    pieces = [
+        f'<html><head><meta charset="utf-8"><title>{html.escape(title)}</title></head><body>'
+    ]
     pieces.append(f"<h1>{html.escape(title)}</h1>")
     for heading, content in sections.items():
         pieces.append(f"<h2>{html.escape(heading)}</h2>")
         pieces.append(content)
     pieces.append("</body></html>")
-    out_path.write_text('\n'.join(pieces), encoding='utf-8')
+    out_path.write_text("\n".join(pieces), encoding="utf-8")
 
 
 def main():
     p = argparse.ArgumentParser(description="EDA report for processed road safety data")
-    p.add_argument('--input', type=Path, default=Path('RoadSense/outputs/processed_road_safety.gpkg'))
-    p.add_argument('--output', type=Path, default=Path('reports/eda_summary.html'))
-    p.add_argument('--sample', type=int, default=100)
+    p.add_argument(
+        "--input",
+        type=Path,
+        default=Path("RoadSense/outputs/processed_road_safety.gpkg"),
+    )
+    p.add_argument("--output", type=Path, default=Path("reports/eda_summary.html"))
+    p.add_argument("--sample", type=int, default=100)
     args = p.parse_args()
 
     out_dir = ensure_outdir(args.output)
 
-    print('Loading data from', args.input)
+    print("Loading data from", args.input)
     gdf = load_data(args.input)
     df = gdf.copy()
 
     # Columns of interest
     key_cols = [
-        'SpeedLimit', 'MedianSpeed', 'F85thPercentileSpeed',
-        'PercentOverLimit', 'WeightedSample', 'SampleSize_avg', 'RankedPercentile', 'Shape_Length'
+        "SpeedLimit",
+        "MedianSpeed",
+        "F85thPercentileSpeed",
+        "PercentOverLimit",
+        "WeightedSample",
+        "SampleSize_avg",
+        "RankedPercentile",
+        "Shape_Length",
     ]
 
     # Missing values
     miss_tbl = missing_value_table(df)
-    miss_html = miss_tbl.to_html(classes='table table-striped')
+    miss_html = miss_tbl.to_html(classes="table table-striped")
 
     # Summary stats for key cols
     present = [c for c in key_cols if c in df.columns]
     stats = summary_stats(df, present)
-    stats_html = stats.to_html(classes='table table-sm')
+    stats_html = stats.to_html(classes="table table-sm")
 
     # Save histograms and boxplots
     images = []
@@ -169,8 +181,12 @@ def main():
     corr_df = corr_res[1] if corr_res else None
 
     # Region comparison
-    region_cmp = region_comparison(df, 'region', present)
-    region_html = region_cmp.to_html(classes='table table-sm') if not region_cmp.empty else '<p>No region column found.</p>'
+    region_cmp = region_comparison(df, "region", present)
+    region_html = (
+        region_cmp.to_html(classes="table table-sm")
+        if not region_cmp.empty
+        else "<p>No region column found.</p>"
+    )
 
     # Duplicates
     dup_count = df.duplicated().sum()
@@ -181,27 +197,29 @@ def main():
 
     # Build sections
     sections = {
-        'Data snapshot': f"<p>Rows: {len(df)}</p><p>Columns: {len(df.columns)}</p>",
-        'Geometry report': geom_html,
-        'Missing values': miss_html,
-        'Summary statistics (selected columns)': stats_html,
-        'Region comparison (selected columns)': region_html,
-        'Duplicate rows': f"<p>Duplicate row count: {dup_count}</p>",
+        "Data snapshot": f"<p>Rows: {len(df)}</p><p>Columns: {len(df.columns)}</p>",
+        "Geometry report": geom_html,
+        "Missing values": miss_html,
+        "Summary statistics (selected columns)": stats_html,
+        "Region comparison (selected columns)": region_html,
+        "Duplicate rows": f"<p>Duplicate row count: {dup_count}</p>",
     }
 
     # add images to report
-    imgs_html = ''
+    imgs_html = ""
     for im in images:
         imgs_html += f"<div style='display:inline-block;margin:6px'><img src=\"{im}\" style=\"max-width:360px;\"><div style='text-align:center'>{html.escape(im)}</div></div>"
     if imgs_html:
-        sections['Histograms and boxplots'] = imgs_html
+        sections["Histograms and boxplots"] = imgs_html
 
     if corr_img is not None:
-        sections['Correlation matrix'] = f"<img src=\"{corr_img}\" style=\"max-width:800px\">"
+        sections["Correlation matrix"] = (
+            f'<img src="{corr_img}" style="max-width:800px">'
+        )
 
-    build_html('RoadSense EDA report', sections, args.output)
-    print('Report written to', args.output)
+    build_html("RoadSense EDA report", sections, args.output)
+    print("Report written to", args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -50,7 +50,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-
 FEATURES = [
     "SpeedLimit",
     "MedianSpeed",
@@ -156,7 +155,10 @@ def build_models(task: str):
     if task == "regression":
         models = [
             ("LinearRegression", LinearRegression()),
-            ("RandomForestRegressor", RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1)),
+            (
+                "RandomForestRegressor",
+                RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1),
+            ),
             ("DummyRegressor", DummyRegressor(strategy="median")),
         ]
         try:
@@ -183,7 +185,10 @@ def build_models(task: str):
     elif task == "classification":
         models = [
             ("LogisticRegression", LogisticRegression(max_iter=1000, n_jobs=-1)),
-            ("RandomForestClassifier", RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1)),
+            (
+                "RandomForestClassifier",
+                RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1),
+            ),
             ("DummyClassifier", DummyClassifier(strategy="most_frequent")),
         ]
         try:
@@ -241,9 +246,13 @@ def evaluate_classification(y_true, y_pred, y_score=None) -> dict:
 
 def choose_best_model(task: str, metrics_df: pd.DataFrame) -> str:
     if task == "regression":
-        ranked = metrics_df.sort_values(["RMSE", "MAE", "R2"], ascending=[True, True, False])
+        ranked = metrics_df.sort_values(
+            ["RMSE", "MAE", "R2"], ascending=[True, True, False]
+        )
     else:
-        ranked = metrics_df.sort_values(["F1", "ROC_AUC", "Accuracy"], ascending=[False, False, False])
+        ranked = metrics_df.sort_values(
+            ["F1", "ROC_AUC", "Accuracy"], ascending=[False, False, False]
+        )
     return ranked.iloc[0]["model"]
 
 
@@ -258,38 +267,84 @@ def extract_positive_scores(model, X):
     return None
 
 
-def build_report(report_path: Path, task: str, metrics_df: pd.DataFrame, best_model_name: str, best_metrics: dict, feat_imp: pd.DataFrame):
+def build_report(
+    report_path: Path,
+    task: str,
+    metrics_df: pd.DataFrame,
+    best_model_name: str,
+    best_metrics: dict,
+    feat_imp: pd.DataFrame,
+):
     report_path.parent.mkdir(parents=True, exist_ok=True)
     sections = []
-    sections.append("<html><head><meta charset='utf-8'><title>RoadSense Baseline Report</title>")
+    sections.append(
+        "<html><head><meta charset='utf-8'><title>RoadSense Baseline Report</title>"
+    )
     sections.append(
         "<style>body{font-family:Arial,sans-serif;max-width:1100px;margin:24px auto;line-height:1.45}"
         "table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}"
         "th{background:#f3f4f6}</style></head><body>"
     )
-    sections.append(f"<h1>RoadSense Baseline Model Report</h1><p>Task: <strong>{html.escape(task)}</strong></p>")
+    sections.append(
+        f"<h1>RoadSense Baseline Model Report</h1><p>Task: <strong>{html.escape(task)}</strong></p>"
+    )
     sections.append(f"<h2>Best model</h2><p>{html.escape(best_model_name)}</p>")
     sections.append("<h2>Model comparison</h2>")
-    sections.append(metrics_df.to_html(index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""))
+    sections.append(
+        metrics_df.to_html(
+            index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""
+        )
+    )
     sections.append("<h2>Best model metrics</h2>")
-    sections.append(pd.DataFrame([best_metrics]).to_html(index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""))
+    sections.append(
+        pd.DataFrame([best_metrics]).to_html(
+            index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""
+        )
+    )
     sections.append("<h2>Permutation importance</h2>")
-    sections.append(feat_imp.to_html(index=False, float_format=lambda x: f"{x:.6f}" if pd.notna(x) else ""))
+    sections.append(
+        feat_imp.to_html(
+            index=False, float_format=lambda x: f"{x:.6f}" if pd.notna(x) else ""
+        )
+    )
     sections.append("</body></html>")
     report_path.write_text("\n".join(sections), encoding="utf-8")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train a baseline model for road safety risk")
-    parser.add_argument("--input", type=Path, default=Path("RoadSense/outputs/processed_road_safety.gpkg"))
-    parser.add_argument("--task", choices=["regression", "classification"], default="regression")
-    parser.add_argument("--threshold", type=float, default=0.20, help="Threshold for binary classification task")
+    parser = argparse.ArgumentParser(
+        description="Train a baseline model for road safety risk"
+    )
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("RoadSense/outputs/processed_road_safety.gpkg"),
+    )
+    parser.add_argument(
+        "--task", choices=["regression", "classification"], default="regression"
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.20,
+        help="Threshold for binary classification task",
+    )
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--random-state", type=int, default=42)
-    parser.add_argument("--model-path", type=Path, default=Path("models/baseline_model.pkl"))
-    parser.add_argument("--metrics-path", type=Path, default=Path("reports/baseline_metrics.csv"))
-    parser.add_argument("--importance-path", type=Path, default=Path("reports/baseline_feature_importance.csv"))
-    parser.add_argument("--report-path", type=Path, default=Path("reports/baseline_report.html"))
+    parser.add_argument(
+        "--model-path", type=Path, default=Path("models/baseline_model.pkl")
+    )
+    parser.add_argument(
+        "--metrics-path", type=Path, default=Path("reports/baseline_metrics.csv")
+    )
+    parser.add_argument(
+        "--importance-path",
+        type=Path,
+        default=Path("reports/baseline_feature_importance.csv"),
+    )
+    parser.add_argument(
+        "--report-path", type=Path, default=Path("reports/baseline_report.html")
+    )
     args = parser.parse_args()
 
     df = load_processed_data(args.input)
@@ -392,7 +447,14 @@ def main():
     feat_imp.to_csv(args.importance_path, index=False)
 
     best_row = metrics_df.loc[metrics_df["model"] == best_model_name].iloc[0].to_dict()
-    build_report(args.report_path, args.task, metrics_df, best_model_name, best_row, feat_imp.head(20))
+    build_report(
+        args.report_path,
+        args.task,
+        metrics_df,
+        best_model_name,
+        best_row,
+        feat_imp.head(20),
+    )
 
     print(f"Best model: {best_model_name}")
     print(f"Saved model to: {args.model_path}")

@@ -11,17 +11,18 @@ from loguru import logger
 from scipy.spatial import cKDTree
 
 from roadsense.config import (
-    SCORE_WEIGHTS,
     RAW_DATA_DIR,
-    PROCESSED_DATA_DIR,
     OUTPUT_DIR,
 )
 from roadsense.data.loader import load_and_clean, map_to_roadsense_schema
-from roadsense.evaluation.metrics import correlation_matrix, sensitivity_analysis, morans_i
+from roadsense.evaluation.metrics import (
+    correlation_matrix,
+    sensitivity_analysis,
+    morans_i,
+)
 from roadsense.scoring import (
     score_dataframe_4component,
     score_dataframe_roadsense,
-    classify_priority,
     compute_reliability_tier,
 )
 from roadsense.visualisation.map import create_interactive_map
@@ -81,11 +82,20 @@ def impute_low_sample_scores(
         return df
 
     if score_cols is None:
-        score_cols = [c for c in [
-            "speed_safety_score", "vru_risk_score",
-            "limit_gap", "operating_gap",
-            "SSS", "A_score", "B_score", "C_score",
-        ] if c in df.columns]
+        score_cols = [
+            c
+            for c in [
+                "speed_safety_score",
+                "vru_risk_score",
+                "limit_gap",
+                "operating_gap",
+                "SSS",
+                "A_score",
+                "B_score",
+                "C_score",
+            ]
+            if c in df.columns
+        ]
 
     # Reproject to Web Mercator for distance-based neighbour search
     if df.crs is None or df.crs.is_geographic:
@@ -93,14 +103,13 @@ def impute_low_sample_scores(
     else:
         geo = df
 
-    coords = np.column_stack([
-        geo.geometry.centroid.x.values,
-        geo.geometry.centroid.y.values,
-    ])
-    tree = cKDTree(coords)
-
+    coords = np.column_stack(
+        [
+            geo.geometry.centroid.x.values,
+            geo.geometry.centroid.y.values,
+        ]
+    )
     high_mask = ~mask
-    high_idx = np.where(high_mask)[0]
     low_idx = np.where(mask)[0]
 
     high_sample = df[sample_col].values.astype(float)
@@ -112,9 +121,7 @@ def impute_low_sample_scores(
     imputed_count = 0
     for i in low_idx:
         # Restrict to neighbours with same road class + land use
-        same_class = (
-            df[rc_col].values == df[rc_col].values[i]
-        ) & (
+        same_class = (df[rc_col].values == df[rc_col].values[i]) & (
             df[lu_col].values == df[lu_col].values[i]
         )
         candidates = high_mask & same_class
@@ -154,7 +161,9 @@ def impute_low_sample_scores(
             df.at[df.index[i], f"imputed_{col}"] = imputed_val
         imputed_count += 1
 
-    logger.info(f"  Imputation: {imputed_count}/{low_n} low-sample segments imputed (threshold={threshold})")
+    logger.info(
+        f"  Imputation: {imputed_count}/{low_n} low-sample segments imputed (threshold={threshold})"
+    )
     return df
 
 
@@ -162,8 +171,12 @@ def print_kpis_4component(df: pd.DataFrame) -> None:
     """Print network KPIs for 4-component scoring output."""
     total_km = df["Shape_Length"].sum() / 1000
     print("\n── Network KPIs (4-Component) ─────────────────────────")
-    for label in ["Critical — Immediate Review", "High — Priority Review",
-                   "Moderate — Scheduled Review", "Low — Monitor"]:
+    for label in [
+        "Critical — Immediate Review",
+        "High — Priority Review",
+        "Moderate — Scheduled Review",
+        "Low — Monitor",
+    ]:
         mask = df["priority_class"] == label
         km = df.loc[mask, "Shape_Length"].sum() / 1000
         pct = km / total_km * 100 if total_km > 0 else 0
@@ -177,8 +190,12 @@ def print_kpis_roadsense(df: pd.DataFrame) -> None:
     """Print network KPIs for 3-module scoring output."""
     total_km = df["length_m"].sum() / 1000 if "length_m" in df.columns else 0
     print("\n── Network KPIs (RoadSense 3-Module) ─────────────────")
-    for tier in ["Critical — Immediate Review", "High — Priority Review",
-                  "Moderate — Scheduled Review", "Low — Monitor"]:
+    for tier in [
+        "Critical — Immediate Review",
+        "High — Priority Review",
+        "Moderate — Scheduled Review",
+        "Low — Monitor",
+    ]:
         mask = df["risk_tier"] == tier
         km = df.loc[mask, "length_m"].sum() / 1000 if "length_m" in df.columns else 0
         pct = km / total_km * 100 if total_km > 0 else 0
@@ -191,13 +208,14 @@ def run_pipeline_4component(
     out_dir: str | Path = OUTPUT_DIR,
     weights: dict[str, float] | None = None,
     impute_low_sample: bool = False,
+    use_sample: bool = False,
 ) -> gpd.GeoDataFrame:
     """Single-shot 4-component pipeline."""
     logger.info("── 4-Component Pipeline ───────────────────────────")
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    df = load_and_clean(data_dir)
+    df = load_and_clean(data_dir, use_sample=use_sample)
     df = score_dataframe_4component(df, weights=weights)
 
     # Reliability tier (data quality signal — not a scoring input)
@@ -208,13 +226,21 @@ def run_pipeline_4component(
         df["reliability_colour"] = [r[1] for r in tier_results]
 
     if impute_low_sample:
-        score_cols = [c for c in ["speed_safety_score", "vru_risk_score", "limit_gap", "operating_gap"] if c in df.columns]
+        score_cols = [
+            c
+            for c in [
+                "speed_safety_score",
+                "vru_risk_score",
+                "limit_gap",
+                "operating_gap",
+            ]
+            if c in df.columns
+        ]
         df = impute_low_sample_scores(df, score_cols=score_cols)
         imputed_col = f"imputed_{score_cols[0]}" if score_cols else None
         if imputed_col and imputed_col in df.columns:
             df["reliability_tier"] = df["reliability_tier"].where(
-                df[imputed_col].isna(),
-                df["reliability_tier"] + " (imputed)"
+                df[imputed_col].isna(), df["reliability_tier"] + " (imputed)"
             )
 
     df = add_centroids(df)
@@ -231,13 +257,14 @@ def run_pipeline_roadsense(
     out_dir: str | Path = OUTPUT_DIR,
     module_weights: dict[str, float] | None = None,
     impute_low_sample: bool = False,
+    use_sample: bool = False,
 ) -> gpd.GeoDataFrame:
     """Single-shot 3-module RoadSense pipeline."""
     logger.info("── RoadSense 3-Module Pipeline ────────────────────")
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    df = load_and_clean(data_dir)
+    df = load_and_clean(data_dir, use_sample=use_sample)
     df = map_to_roadsense_schema(df)
     df = score_dataframe_roadsense(df, module_weights=module_weights)
 
@@ -249,13 +276,14 @@ def run_pipeline_roadsense(
         df["reliability_colour"] = [r[1] for r in tier_results]
 
     if impute_low_sample:
-        score_cols = [c for c in ["SSS", "A_score", "B_score", "C_score"] if c in df.columns]
+        score_cols = [
+            c for c in ["SSS", "A_score", "B_score", "C_score"] if c in df.columns
+        ]
         df = impute_low_sample_scores(df, score_cols=score_cols)
         imputed_col = f"imputed_{score_cols[0]}" if score_cols else None
         if imputed_col and imputed_col in df.columns:
             df["reliability_tier"] = df["reliability_tier"].where(
-                df[imputed_col].isna(),
-                df["reliability_tier"] + " (imputed)"
+                df[imputed_col].isna(), df["reliability_tier"] + " (imputed)"
             )
 
     df = add_centroids(df)
@@ -280,19 +308,43 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
 
         # Lighter GeoJSON for web
         speed_col = "SpeedLimit" if "SpeedLimit" in df.columns else "posted_limit"
-        f85_col = "F85thPercentileSpeed" if "F85thPercentileSpeed" in df.columns else "v85"
-        safe_col = "safe_system_limit" if "safe_system_limit" in df.columns else "safe_system_ref"
+        f85_col = (
+            "F85thPercentileSpeed" if "F85thPercentileSpeed" in df.columns else "v85"
+        )
+        safe_col = (
+            "safe_system_limit"
+            if "safe_system_limit" in df.columns
+            else "safe_system_ref"
+        )
 
         viz_cols = [
-            "geometry", "road_name", "segment_id",
-            speed_col, f85_col, "PercentOverLimit",
-            safe_col, "limit_gap", "operating_gap",
-            "speed_safety_score", "priority_class", "score_explanation",
-            "region", "vru_risk_score", "centroid_lat", "centroid_lon",
-            "functional_class", "urban_rural",
-            "A_score", "B_score", "C_score", "SSS", "risk_tier",
-            "reliability_tier", "reliability_colour",
-            "Shape_Length", "length_m",
+            "geometry",
+            "road_name",
+            "segment_id",
+            speed_col,
+            f85_col,
+            "PercentOverLimit",
+            safe_col,
+            "limit_gap",
+            "operating_gap",
+            "speed_safety_score",
+            "priority_class",
+            "score_explanation",
+            "region",
+            "vru_risk_score",
+            "centroid_lat",
+            "centroid_lon",
+            "functional_class",
+            "urban_rural",
+            "A_score",
+            "B_score",
+            "C_score",
+            "SSS",
+            "risk_tier",
+            "reliability_tier",
+            "reliability_colour",
+            "Shape_Length",
+            "length_m",
         ]
         viz_avail = [c for c in viz_cols if c in df.columns]
         geojson_path = out_dir / f"{prefix}.geojson"
@@ -311,11 +363,28 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
     # Generate summary KPIs
     kpi_path = out_dir / f"{prefix}_kpis.csv"
     try:
-        summary = df.groupby(["region", "RoadClass", "LandUse", "priority_class"]).agg(
-            section_count=("speed_safety_score", "count") if "speed_safety_score" in df.columns else ("SSS", "count"),
-            total_length_km=("Shape_Length", lambda x: x.sum() / 1000) if "Shape_Length" in df.columns else ("length_m", lambda x: x.sum() / 1000),
-            mean_score=("speed_safety_score", "mean") if "speed_safety_score" in df.columns else ("SSS", "mean"),
-        ).round(2).reset_index()
+        summary = (
+            df.groupby(["region", "RoadClass", "LandUse", "priority_class"])
+            .agg(
+                section_count=(
+                    ("speed_safety_score", "count")
+                    if "speed_safety_score" in df.columns
+                    else ("SSS", "count")
+                ),
+                total_length_km=(
+                    ("Shape_Length", lambda x: x.sum() / 1000)
+                    if "Shape_Length" in df.columns
+                    else ("length_m", lambda x: x.sum() / 1000)
+                ),
+                mean_score=(
+                    ("speed_safety_score", "mean")
+                    if "speed_safety_score" in df.columns
+                    else ("SSS", "mean")
+                ),
+            )
+            .round(2)
+            .reset_index()
+        )
         summary.to_csv(kpi_path, index=False)
     except Exception:
         pass  # KPI export is best-effort
@@ -324,6 +393,7 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
 def _save_evaluation(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
     """Compute and save evaluation diagnostics to JSON."""
     import json
+
     eval_path = out_dir / f"{prefix}_evaluation.json"
 
     ev = df.copy()
@@ -357,11 +427,26 @@ def _save_evaluation(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
                 for tier in ["Critical", "High", "Moderate", "Low"]:
                     n = (ev[tier_col].str.contains(tier, na=False)).sum()
                     pct = n / total * 100 if total else 0
-                    length_col = "Shape_Length" if "Shape_Length" in ev.columns else "length_m"
-                    km = ev.loc[ev[tier_col].str.contains(tier, na=False), length_col].sum() / 1000 if length_col in ev.columns else 0
-                    results.setdefault("tier_summary", {})[tier] = {"count": int(n), "pct": round(pct, 1), "km": round(float(km), 1)}
+                    length_col = (
+                        "Shape_Length" if "Shape_Length" in ev.columns else "length_m"
+                    )
+                    km = (
+                        ev.loc[
+                            ev[tier_col].str.contains(tier, na=False), length_col
+                        ].sum()
+                        / 1000
+                        if length_col in ev.columns
+                        else 0
+                    )
+                    results.setdefault("tier_summary", {})[tier] = {
+                        "count": int(n),
+                        "pct": round(pct, 1),
+                        "km": round(float(km), 1),
+                    }
 
-        eval_path.write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
+        eval_path.write_text(
+            json.dumps(results, indent=2, default=str), encoding="utf-8"
+        )
         logger.info(f"  Evaluation: {eval_path}")
     except Exception as exc:
         logger.warning(f"Evaluation skipped: {exc}")

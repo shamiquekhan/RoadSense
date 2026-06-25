@@ -11,30 +11,41 @@ from pathlib import Path
 
 import folium
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 from folium import plugins
-
-from roadsense.config import PRIORITY_THRESHOLDS, PRIORITY_DEFAULT
 
 # iRAP-aligned tier styling
 TIER_STYLE: dict[str, dict] = {
     "Critical — Immediate Review": {
-        "color": "#E24B4A", "weight": 5, "opacity": 0.95, "fill_opacity": 0.85,
+        "color": "#E24B4A",
+        "weight": 5,
+        "opacity": 0.95,
+        "fill_opacity": 0.85,
     },
     "High — Priority Review": {
-        "color": "#EF9F27", "weight": 4, "opacity": 0.85, "fill_opacity": 0.70,
+        "color": "#EF9F27",
+        "weight": 4,
+        "opacity": 0.85,
+        "fill_opacity": 0.70,
     },
     "Moderate — Scheduled Review": {
-        "color": "#97C459", "weight": 3, "opacity": 0.75, "fill_opacity": 0.55,
+        "color": "#97C459",
+        "weight": 3,
+        "opacity": 0.75,
+        "fill_opacity": 0.55,
     },
     "Low — Monitor": {
-        "color": "#5DCAA5", "weight": 2, "opacity": 0.65, "fill_opacity": 0.40,
+        "color": "#5DCAA5",
+        "weight": 2,
+        "opacity": 0.65,
+        "fill_opacity": 0.40,
     },
 }
 
 RELIABILITY_OPACITY: dict[str, float] = {
-    "High": 0.85, "Medium": 0.55, "Low": 0.30,
+    "High": 0.85,
+    "Medium": 0.55,
+    "Low": 0.30,
 }
 
 CRITICAL_LABELS = {"Critical — Immediate Review", "Critical"}
@@ -58,9 +69,7 @@ def style_function(feature: dict) -> dict:
     tier = _get_tier_name(props)
     cfg = TIER_STYLE.get(tier, TIER_STYLE["Low — Monitor"])
     reliability = props.get("reliability_tier", "Medium")
-    opacity = RELIABILITY_OPACITY.get(
-        reliability.replace(" (imputed)", ""), 0.55
-    )
+    opacity = RELIABILITY_OPACITY.get(reliability.replace(" (imputed)", ""), 0.55)
     return {
         "fillColor": cfg["color"],
         "color": "#333",
@@ -74,74 +83,68 @@ def highlight_function(feature: dict) -> dict:
     return {"weight": 6, "color": "#fff", "fillOpacity": 0.9}
 
 
+def _tier_color(tier: str) -> str:
+    for t, cfg in TIER_STYLE.items():
+        if t.startswith(tier.split(" —")[0]) or tier.startswith(t.split(" —")[0]):
+            return cfg["color"]
+    return "#888"
+
+
 def _build_tier_popup(props: dict) -> str:
     tier = _get_tier_name(props)
     score = _get_score(props)
+    color = _tier_color(tier)
     speed_limit = props.get("SpeedLimit") or props.get("posted_limit") or "—"
     f85 = props.get("F85thPercentileSpeed") or props.get("v85") or "—"
     ssl = props.get("safe_system_limit") or props.get("safe_system_ref") or "—"
     road_class = props.get("RoadClass") or props.get("functional_class") or "—"
-    region = props.get("region", "—")
-    reliability = props.get("reliability_tier", "Medium")
-    land_use = props.get("LandUse") or props.get("urban_rural") or "—"
+    road_name = props.get("road_name", "")
     a_score = props.get("A_score") or props.get("speed_safety_score") or 0
     b_score = props.get("B_score") or props.get("vru_risk_score") or 0
     c_score = props.get("C_score") or 0
-    over_limit = props.get("PercentOverLimit", 0)
-    if over_limit == 0 and isinstance(over_limit, int):
-        over_limit = props.get("limit_gap", 0)
-        over_limit = 1 if over_limit and over_limit > 0 else 0
-
     limit_gap = props.get("limit_gap", 0)
-    operating_gap = props.get("operating_gap", 0)
     show_alert = "none"
     alert_text = ""
     if limit_gap is not None and limit_gap > 0:
         show_alert = "block"
-        alert_text = "Posted limit exceeds Safe System recommendation"
-    elif operating_gap is not None and operating_gap > 0:
-        show_alert = "block"
-        alert_text = "Traffic speed exceeds Safe System threshold"
+        alert_text = "Speed limit review recommended"
+
+    f85_color = (
+        "#c0392b"
+        if f85 != "—" and speed_limit != "—" and float(f85) > float(speed_limit)
+        else "#27ae60"
+    )
+    f85_arrow = (
+        " ▲"
+        if f85 != "—" and speed_limit != "—" and float(f85) > float(speed_limit)
+        else ""
+    )
 
     return f"""
-    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; min-width: 260px;">
-        <div style="background:#1a1a2e; color:white; padding:8px 12px; border-radius:6px 6px 0 0;
-                    display:flex; align-items:center; justify-content:space-between;">
-            <strong style="font-size:14px;">{tier}</strong>
-            <span style="font-size:20px; font-weight:700;">{score:.2f}</span>
+    <div style="font-family:system-ui,sans-serif;font-size:12px;min-width:228px;line-height:1.5;">
+        <div style="border-left:3px solid {color};padding:6px 9px;background:{color}15;margin-bottom:8px;">
+            <span style="color:{color};font-weight:700;font-size:13px;">{tier.split(' —')[0]}</span>
+            <span style="float:right;font-size:20px;font-weight:800;color:{color};">{score:.0f}</span>
+            <div style="font-size:11px;color:#666;margin-top:2px;">{road_name}</div>
         </div>
-        <div style="padding:10px 12px; border:1px solid #e0e0e0; border-top:none; border-radius:0 0 6px 6px;">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr><td style="color:#666; padding:3px 0;">Road class</td>
-                    <td style="text-align:right; font-weight:500;">{road_class}</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Region</td>
-                    <td style="text-align:right; font-weight:500;">{region}</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Land use</td>
-                    <td style="text-align:right; font-weight:500;">{land_use}</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Data reliability</td>
-                    <td style="text-align:right; font-weight:500;">{reliability}</td></tr>
-                <tr><td colspan="2" style="padding-top:4px; border-top:1px solid #eee;"></td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Posted limit</td>
-                    <td style="text-align:right; font-weight:500;">{speed_limit} km/h</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">85th pct speed</td>
-                    <td style="text-align:right; font-weight:500;">{f85} km/h</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Safe System limit</td>
-                    <td style="text-align:right; font-weight:500;">{ssl} km/h</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">% over limit</td>
-                    <td style="text-align:right; font-weight:500;">{over_limit}%</td></tr>
-                <tr><td colspan="2" style="padding-top:4px; border-top:1px solid #eee;"></td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Speed alignment</td>
-                    <td style="text-align:right;">{a_score:.2f}</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">VRU exposure</td>
-                    <td style="text-align:right;">{b_score:.2f}</td></tr>
-                <tr><td style="color:#666; padding:3px 0;">Infrastructure</td>
-                    <td style="text-align:right;">{c_score:.2f}</td></tr>
-            </table>
-            <div style="margin-top:8px; padding:6px 8px; background:#fff3f3; border-radius:4px;
-                        color:#c0392b; font-size:12px; display:{show_alert};">
-                {alert_text}
-            </div>
-        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr><td style="color:#888;padding:2px 0;">Road class</td>
+                <td style="text-align:right;font-weight:500;color:#222;">{road_class}</td></tr>
+            <tr><td style="color:#888;padding:2px 0;">Posted limit</td>
+                <td style="text-align:right;font-weight:500;color:#222;">{speed_limit} km/h</td></tr>
+            <tr><td style="color:#888;padding:2px 0;">85th pct speed</td>
+                <td style="text-align:right;font-weight:500;color:{f85_color};">{f85} km/h{f85_arrow}</td></tr>
+            <tr><td style="color:#888;padding:2px 0;">Safe System limit</td>
+                <td style="text-align:right;color:#222;">{ssl} km/h</td></tr>
+            <tr><td colspan="2" style="padding-top:5px;border-top:1px solid #f0f0f0;"></td></tr>
+            <tr><td style="color:#888;padding:2px 0;">Speed alignment (A)</td>
+                <td style="text-align:right;color:#333;">{a_score:.0f}/100</td></tr>
+            <tr><td style="color:#888;padding:2px 0;">VRU exposure (B)</td>
+                <td style="text-align:right;color:#333;">{b_score:.0f}/100</td></tr>
+            <tr><td style="color:#888;padding:2px 0;">Infrastructure (C)</td>
+                <td style="text-align:right;color:#333;">{c_score:.0f}/100</td></tr>
+        </table>
+        <div style="margin-top:7px;padding:4px 8px;background:#fdecea;border-radius:4px;color:#c0392b;font-size:11px;display:{show_alert};">{alert_text}</div>
     </div>
     """
 
@@ -162,11 +165,15 @@ def prepare_for_web(
     - Simplifies geometry to ~11m resolution.
     """
     priority_col = "priority_class" if "priority_class" in gdf.columns else "risk_tier"
-    pct_col = "RankedPercentile" if "RankedPercentile" in gdf.columns else "PercentOverLimit"
+    pct_col = (
+        "RankedPercentile" if "RankedPercentile" in gdf.columns else "PercentOverLimit"
+    )
     score_col = "speed_safety_score" if "speed_safety_score" in gdf.columns else "SSS"
 
     if priority_col not in gdf.columns:
-        raise KeyError(f"Neither priority_class nor risk_tier found in columns: {list(gdf.columns)}")
+        raise KeyError(
+            f"Neither priority_class nor risk_tier found in columns: {list(gdf.columns)}"
+        )
 
     crit_high = gdf[gdf[priority_col].isin(CRITICAL_LABELS | HIGH_LABELS)].copy()
     other = gdf[~gdf.index.isin(crit_high.index)].copy()
@@ -176,7 +183,9 @@ def prepare_for_web(
 
     crit_high_keep = min(len(crit_high), max(2000, max_segments // 2))
     if len(crit_high) > crit_high_keep:
-        score_col_local = "speed_safety_score" if "speed_safety_score" in crit_high.columns else "SSS"
+        score_col_local = (
+            "speed_safety_score" if "speed_safety_score" in crit_high.columns else "SSS"
+        )
         crit_high = crit_high.nlargest(crit_high_keep, score_col_local)
 
     keep_n = max(0, max_segments - len(crit_high))
@@ -185,7 +194,9 @@ def prepare_for_web(
 
     web = pd.concat([crit_high, other], ignore_index=True)
     web = web.to_crs("EPSG:4326")
-    web["geometry"] = web.geometry.simplify(tolerance=simplify_tolerance, preserve_topology=True)
+    web["geometry"] = web.geometry.simplify(
+        tolerance=simplify_tolerance, preserve_topology=True
+    )
 
     length_col = "Shape_Length" if "Shape_Length" in web.columns else "length_m"
     if length_col in web.columns:
@@ -197,13 +208,15 @@ def prepare_for_web(
 
     web = web.reset_index(drop=True)
 
-    print(f"  Map data: {len(web)} segments ({len(crit_high)} Critical/High kept, "
-          f"{len(other)} Moderate/Low sampled), geometry simplified")
+    print(
+        f"  Map data: {len(web)} segments ({len(crit_high)} Critical/High kept, "
+        f"{len(other)} Moderate/Low sampled), geometry simplified"
+    )
     return web
 
 
 def _build_legend_html() -> str:
-    return f"""
+    return """
     <div style="position:fixed; bottom:30px; left:20px; z-index:9999;
                 background:rgba(255,255,255,0.95); color:#333;
                 padding:14px 18px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15);
@@ -246,8 +259,6 @@ def _build_legend_html() -> str:
 def _build_stats_html(gdf: gpd.GeoDataFrame) -> str:
     priority_col = "priority_class" if "priority_class" in gdf.columns else "risk_tier"
     length_col = "Shape_Length" if "Shape_Length" in gdf.columns else "length_m"
-    score_col = "speed_safety_score" if "speed_safety_score" in gdf.columns else "SSS"
-
     total_km = (gdf[length_col].sum() / 1000) if length_col in gdf.columns else 0
     tiers = {
         "Critical": gdf[gdf[priority_col].str.startswith("Critical", na=False)],
@@ -332,9 +343,7 @@ def _add_top10_markers(m: folium.Map, gdf: gpd.GeoDataFrame) -> None:
         ).add_to(m)
 
 
-def _add_tier_layers(
-    m: folium.Map, gdf: gpd.GeoDataFrame, data: dict
-) -> None:
+def _add_tier_layers(m: folium.Map, gdf: gpd.GeoDataFrame, data: dict) -> None:
     """Add per-tier FeatureGroups with layer control."""
     priority_col = "priority_class" if "priority_class" in gdf.columns else "risk_tier"
 
@@ -345,16 +354,19 @@ def _add_tier_layers(
         "Low — Monitor",
     ]
 
-    tier_short = {"Critical — Immediate Review": "Critical",
-                  "High — Priority Review": "High",
-                  "Moderate — Scheduled Review": "Moderate",
-                  "Low — Monitor": "Low"}
+    tier_short = {
+        "Critical — Immediate Review": "Critical",
+        "High — Priority Review": "High",
+        "Moderate — Scheduled Review": "Moderate",
+        "Low — Monitor": "Low",
+    }
 
     def _filter_features(data: dict, tier_name: str) -> dict:
         return {
             "type": "FeatureCollection",
             "features": [
-                f for f in data.get("features", [])
+                f
+                for f in data.get("features", [])
                 if f["properties"].get(priority_col, "") == tier_name
             ],
         }
@@ -377,15 +389,14 @@ def _add_tier_layers(
                 "fillOpacity": c["fill_opacity"],
             },
             highlight_function=highlight_function,
-            popup=folium.GeoJsonPopup(fields=[], aliases=[],
-                                       style="display:none;"),
+            popup=folium.GeoJsonPopup(fields=[], aliases=[], style="display:none;"),
             tooltip=folium.GeoJsonTooltip(
                 fields=[priority_col],
                 aliases=["Priority"],
                 labels=True,
                 style="background:#1a1a2e; color:white; border:none;"
-                      " border-radius:4px; padding:4px 8px; font-size:12px;"
-                      " font-family:sans-serif;",
+                " border-radius:4px; padding:4px 8px; font-size:12px;"
+                " font-family:sans-serif;",
             ),
             smooth_factor=0.5,
         ).add_to(fg)
@@ -397,9 +408,7 @@ def _add_tier_layers(
         fg.add_to(m)
 
     # Add module layers
-    score_col = "speed_safety_score" if "speed_safety_score" in gdf.columns else "SSS"
     if "A_score" in gdf.columns:
-        a_data = _filter_features(data, None)
         fg_a = folium.FeatureGroup(name="Module A — Speed alignment", show=False)
         _add_module_layer(fg_a, data, "A_score", "#3498db", gdf)
         fg_a.add_to(m)
@@ -420,7 +429,11 @@ def _add_module_layer(
 ) -> None:
     """Add a single module-score layer to a FeatureGroup."""
     scores = gdf[col] if col in gdf.columns else pd.Series([0.5] * len(gdf[col]))
-    norm = (scores - scores.min()) / (scores.max() - scores.min() + 1e-6) if len(scores) > 0 else scores
+    norm = (
+        (scores - scores.min()) / (scores.max() - scores.min() + 1e-6)
+        if len(scores) > 0
+        else scores
+    )
     scale = norm.fillna(0.5).tolist()
 
     def _style(feature: dict, s=scale, c=color) -> dict:
@@ -441,8 +454,8 @@ def _add_module_layer(
             aliases=[f"{col.replace('_', ' ')}"],
             labels=True,
             style="background:#1a1a2e; color:white; border:none;"
-                  " border-radius:4px; padding:4px 8px; font-size:12px;"
-                  " font-family:sans-serif;",
+            " border-radius:4px; padding:4px 8px; font-size:12px;"
+            " font-family:sans-serif;",
         ),
         smooth_factor=0.5,
     ).add_to(fg)
@@ -457,7 +470,8 @@ def _add_budget_widget(m: folium.Map, gdf: gpd.GeoDataFrame) -> None:
     priority_col = "priority_class" if "priority_class" in gdf.columns else "risk_tier"
 
     total_critical_km = int(
-        gdf[gdf[priority_col].isin(CRITICAL_LABELS | HIGH_LABELS)][length_col].sum() / 1000
+        gdf[gdf[priority_col].isin(CRITICAL_LABELS | HIGH_LABELS)][length_col].sum()
+        / 1000
     )
     total_km = int(gdf[length_col].sum() / 1000)
     step = max(1, total_km // 100)
@@ -572,14 +586,13 @@ def create_interactive_map(
             aliases=["Priority"],
             labels=False,
             style="background:rgba(255,255,255,0.95); color:#333; border:1px solid #ddd;"
-                  " border-radius:4px; padding:6px 10px; font-size:13px;"
-                  " font-family:sans-serif; box-shadow:0 1px 4px rgba(0,0,0,0.15);",
+            " border-radius:4px; padding:6px 10px; font-size:13px;"
+            " font-family:sans-serif; box-shadow:0 1px 4px rgba(0,0,0,0.15);",
         ),
         smooth_factor=0.5,
     ).add_to(m)
 
     # Attach custom HTML popup via click binding in JS
-    # Use __MAP__ placeholder to avoid % formatting conflicts with JS/CSS
     popup_js = """
     <script>
     (function() {
@@ -589,54 +602,54 @@ def create_interactive_map(
                               .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function formatSubScore(val) {
-            return val !== undefined && val !== null ? Number(val).toFixed(2) : '\u2014';
+        function tierColor(tier) {
+            if (tier.indexOf('Critical') === 0) return '#E24B4A';
+            if (tier.indexOf('High') === 0) return '#EF9F27';
+            if (tier.indexOf('Moderate') === 0) return '#97C459';
+            return '#5DCAA5';
         }
 
         function buildPopupHtml(props) {
-            var tier = props.priority_class || props.risk_tier || 'Low \u2014 Monitor';
+            var tier = props.priority_class || props.risk_tier || 'Low \\u2014 Monitor';
             var score = props.speed_safety_score || props.SSS || 0;
-            var speedLimit = props.SpeedLimit || props.posted_limit || '\u2014';
-            var f85 = props.F85thPercentileSpeed || props.v85 || '\u2014';
-            var ssl = props.safe_system_limit || props.safe_system_ref || '\u2014';
-            var roadClass = props.RoadClass || props.functional_class || '\u2014';
-            var region = props.region || '\u2014';
-            var reliability = props.reliability_tier || 'Medium';
-            var landUse = props.LandUse || props.urban_rural || '\u2014';
-            var aScore = formatSubScore(props.A_score || props.speed_safety_score);
-            var bScore = formatSubScore(props.B_score || props.vru_risk_score);
-            var cScore = formatSubScore(props.C_score || 0);
+            var color = tierColor(tier);
+            var speedLimit = props.SpeedLimit || props.posted_limit || '\\u2014';
+            var f85 = props.F85thPercentileSpeed || props.v85 || '\\u2014';
+            var ssl = props.safe_system_limit || props.safe_system_ref || '\\u2014';
+            var roadClass = props.RoadClass || props.functional_class || '\\u2014';
+            var roadName = props.road_name || '';
             var limitGap = props.limit_gap || 0;
-            var operatingGap = props.operating_gap || 0;
-            var showAlert = (limitGap > 0 || operatingGap > 0) ? 'block' : 'none';
-            var alertText = limitGap > 0
-                ? 'Posted limit exceeds Safe System recommendation'
-                : (operatingGap > 0 ? 'Traffic speed exceeds Safe System threshold' : '');
+            var showAlert = (limitGap > 0) ? 'block' : 'none';
 
-            return '<div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;min-width:260px;">'
-                + '<div style="background:#f5f5f5;color:#222;padding:8px 12px;border-radius:6px 6px 0 0;border:1px solid #e0e0e0;border-bottom:none;display:flex;align-items:center;justify-content:space-between;">'
-                + '<strong style="font-size:14px;">' + escapeHtml(tier) + '</strong>'
-                + '<span style="font-size:20px;font-weight:700;">' + Number(score).toFixed(2) + '</span>'
+            var f85num = parseFloat(f85);
+            var slnum = parseFloat(speedLimit);
+            var f85color = (!isNaN(f85num) && !isNaN(slnum) && f85num > slnum) ? '#c0392b' : '#27ae60';
+            var f85arrow = (!isNaN(f85num) && !isNaN(slnum) && f85num > slnum) ? ' \\u25b2' : '';
+
+            var aScore = props.A_score || props.speed_safety_score || 0;
+            var bScore = props.B_score || props.vru_risk_score || 0;
+            var cScore = props.C_score || 0;
+
+            return '<div style="font-family:system-ui,sans-serif;font-size:12px;min-width:228px;line-height:1.5;">'
+                + '<div style="border-left:3px solid ' + color + ';padding:6px 9px;background:' + color + '15;margin-bottom:8px;">'
+                + '<span style="color:' + color + ';font-weight:700;font-size:13px;">' + escapeHtml(tier.replace(/ \\u2014.*/, '')) + '</span>'
+                + '<span style="float:right;font-size:20px;font-weight:800;color:' + color + ';">' + Math.round(score) + '</span>'
+                + (roadName ? '<div style="font-size:11px;color:#666;margin-top:2px;">' + escapeHtml(roadName) + '</div>' : '')
                 + '</div>'
-                + '<div style="padding:10px 12px;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 6px 6px;">'
-                + '<table style="width:100%;border-collapse:collapse;">'
-                + '<tr><td style="color:#666;padding:3px 0;">Road class</td><td style="text-align:right;font-weight:500;">' + escapeHtml(roadClass) + '</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Region</td><td style="text-align:right;font-weight:500;">' + escapeHtml(region) + '</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Land use</td><td style="text-align:right;font-weight:500;">' + escapeHtml(landUse) + '</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Data reliability</td><td style="text-align:right;font-weight:500;">' + escapeHtml(reliability) + '</td></tr>'
-                + '<tr><td colspan="2" style="padding-top:4px;border-top:1px solid #eee;"></td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Posted limit</td><td style="text-align:right;font-weight:500;">' + escapeHtml(String(speedLimit)) + ' km/h</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">85th pct speed</td><td style="text-align:right;font-weight:500;">' + escapeHtml(String(f85)) + ' km/h</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Safe System limit</td><td style="text-align:right;font-weight:500;">' + escapeHtml(String(ssl)) + ' km/h</td></tr>'
-                + '<tr><td colspan="2" style="padding-top:4px;border-top:1px solid #eee;"></td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Speed alignment</td><td style="text-align:right;">' + aScore + '</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">VRU exposure</td><td style="text-align:right;">' + bScore + '</td></tr>'
-                + '<tr><td style="color:#666;padding:3px 0;">Infrastructure</td><td style="text-align:right;">' + cScore + '</td></tr>'
+                + '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
+                + '<tr><td style="color:#888;padding:2px 0;">Road class</td><td style="text-align:right;font-weight:500;color:#222;">' + escapeHtml(roadClass) + '</td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">Posted limit</td><td style="text-align:right;font-weight:500;color:#222;">' + escapeHtml(String(speedLimit)) + ' km/h</td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">85th pct speed</td><td style="text-align:right;font-weight:500;color:' + f85color + ';">' + escapeHtml(String(f85)) + ' km/h' + f85arrow + '</td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">Safe System limit</td><td style="text-align:right;color:#222;">' + escapeHtml(String(ssl)) + ' km/h</td></tr>'
+                + '<tr><td colspan="2" style="padding-top:5px;border-top:1px solid #f0f0f0;"></td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">Speed alignment (A)</td><td style="text-align:right;color:#333;">' + Math.round(aScore) + '/100</td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">VRU exposure (B)</td><td style="text-align:right;color:#333;">' + Math.round(bScore) + '/100</td></tr>'
+                + '<tr><td style="color:#888;padding:2px 0;">Infrastructure (C)</td><td style="text-align:right;color:#333;">' + Math.round(cScore) + '/100</td></tr>'
                 + '</table>'
                 + (showAlert === 'block'
-                    ? '<div style="margin-top:8px;padding:6px 8px;background:#fff3f3;border-radius:4px;color:#c0392b;font-size:12px;">' + escapeHtml(alertText) + '</div>'
+                    ? '<div style="margin-top:7px;padding:4px 8px;background:#fdecea;border-radius:4px;color:#c0392b;font-size:11px;">Speed limit review recommended</div>'
                     : '')
-                + '</div></div>';
+                + '</div>';
         }
 
         __MAP__.on('click', function(e) {

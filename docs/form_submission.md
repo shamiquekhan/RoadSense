@@ -5,7 +5,7 @@
 ---
 
 ### Submission Title
-RoadSense: AI-Powered Speed Safety Score for Safer Roads
+RoadSense: AI-Powered Speed Safety Score and VRU Exposure Analysis
 
 ---
 
@@ -132,6 +132,8 @@ Key findings:
 
 ### Motivation
 
+*(Note: Keep the live version of this field on the ADB website. It is more specific and compelling than this draft, as it highlights your personal context and resources.)*
+
 I chose to participate in this challenge because road safety is one of the most solvable yet persistently neglected public health issues in developing countries. Over 1.3 million people die on roads annually — the majority in Asia-Pacific — and speed is the single most important factor determining whether a crash results in a fatality or an injury.
 
 What excites me about this challenge is that the data and tools now exist to move from anecdotal policy-making to evidence-based speed management. GPS probe data, OpenStreetMap, and computer vision models like CLIP make it possible to assess every road segment in a country at minimal cost.
@@ -157,12 +159,14 @@ I built RoadSense because I believe transport ministries should have a tool that
 **LinkedIn:** https://www.linkedin.com/in/shamique-khan/
 
 **Team Members:**
-- Shamique Khan | 2004 | India | shamiquekhan18@gmail.com
+- Shamique Khan | 2006 | India | shamiquekhan18@gmail.com
 
 **Team Composition:**
 Shamique Khan — Data Science, AI/ML, backend engineering, full-stack project development. Independently designed and built the entire RoadSense pipeline including data preprocessing, multi-module scoring engines, geospatial visualization, and CI/CD infrastructure.
 
 **Previous Experience:**
+*(Note: Keep the live version of this field on the ADB website. It is stronger because it includes details about your weather forecasting model, investment advisor agent, ARAMS pipeline, and sleep-staging device.)*
+
 I have experience in data science and machine learning projects, including building end-to-end analytical pipelines, geospatial data processing with GeoPandas and OSMnx, and deploying interactive visualizations. This project represents my first application of these skills to transport safety, combining my technical background with a commitment to social impact.
 
 ---
@@ -187,9 +191,9 @@ Select ALL:
 
 **Analytical Model:** https://github.com/shamiquekhan/RoadSense
 
-**Speed Safety Score:** https://github.com/shamiquekhan/RoadSense
+**Speed Safety Score:** https://github.com/shamiquekhan/RoadSense/blob/main/outputs/speed_safety_scores.csv
 
-**Geospatial Visualization:** https://github.com/shamiquekhan/RoadSense
+**Geospatial Visualization:** https://shamiquekhan.github.io/RoadSense/speed_safety_scores_map.html
 
 ---
 

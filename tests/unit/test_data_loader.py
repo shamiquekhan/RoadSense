@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from roadsense.data.loader import (
     _fix_string_columns,
@@ -16,21 +15,31 @@ from roadsense.data.loader import (
 
 class TestFixStringColumns:
     def test_landuse_normalised(self):
-        df = pd.DataFrame({
-            "LandUse": ["urban", "RURAL", "Urban", np.nan, ""],
-            "RoadClass": ["primary", "secondary", "Trunk", "Motorway", "primary"],
-        })
+        df = pd.DataFrame(
+            {
+                "LandUse": ["urban", "RURAL", "Urban", np.nan, ""],
+                "RoadClass": ["primary", "secondary", "Trunk", "Motorway", "primary"],
+            }
+        )
         df = _fix_string_columns(df)
         assert df["LandUse"].tolist() == ["URBAN", "RURAL", "URBAN", "RURAL", "RURAL"]
-        assert df["RoadClass"].tolist() == ["primary", "secondary", "trunk", "motorway", "primary"]
+        assert df["RoadClass"].tolist() == [
+            "primary",
+            "secondary",
+            "trunk",
+            "motorway",
+            "primary",
+        ]
 
 
 class TestFixSpeedLimit:
     def test_string_to_numeric(self):
-        df = pd.DataFrame({
-            "SpeedLimit": ["55", "80", "30", None, "0"],
-            "RoadClass": ["primary", "secondary", "trunk", "motorway", "secondary"],
-        })
+        df = pd.DataFrame(
+            {
+                "SpeedLimit": ["55", "80", "30", None, "0"],
+                "RoadClass": ["primary", "secondary", "trunk", "motorway", "secondary"],
+            }
+        )
         df = _fix_speed_limit(df)
         assert df["SpeedLimit"].dtype in (np.float64, float)
         assert df.loc[0, "SpeedLimit"] == 55
@@ -41,10 +50,12 @@ class TestFixSpeedLimit:
 
 class TestClipBoundedFields:
     def test_clip_percent_over_limit(self):
-        df = pd.DataFrame({
-            "PercentOverLimit": [-0.1, 0.5, 1.5],
-            "Percentile": [-0.1, 0.5, 1.5],
-        })
+        df = pd.DataFrame(
+            {
+                "PercentOverLimit": [-0.1, 0.5, 1.5],
+                "Percentile": [-0.1, 0.5, 1.5],
+            }
+        )
         df = _clip_bounded_fields(df)
         assert df["PercentOverLimit"].tolist() == [0.0, 0.5, 1.0]
         assert df["Percentile"].tolist() == [0.0, 0.5, 1.0]
@@ -53,6 +64,7 @@ class TestClipBoundedFields:
 class TestCleanAdb:
     def test_valid_filter(self, sample_segments_df):
         import geopandas as gpd
+
         gdf = gpd.GeoDataFrame(
             sample_segments_df,
             geometry=[None] * len(sample_segments_df),
@@ -63,6 +75,7 @@ class TestCleanAdb:
 
     def test_invalid_removed(self, sample_segments_df):
         import geopandas as gpd
+
         df = sample_segments_df.copy()
         df.loc[0, "AnalysisStatus"] = "Not Included"
         gdf = gpd.GeoDataFrame(df, geometry=[None] * len(df))

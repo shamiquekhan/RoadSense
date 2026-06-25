@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
-import html
 import warnings
 
 import joblib
@@ -37,7 +36,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
 
 FULL_FEATURES = [
     "SpeedLimit",
@@ -146,7 +144,9 @@ def evaluate(y_true, y_pred) -> dict:
     }
 
 
-def fit_score(train_df: pd.DataFrame, test_df: pd.DataFrame, features: list[str], model_name: str) -> dict:
+def fit_score(
+    train_df: pd.DataFrame, test_df: pd.DataFrame, features: list[str], model_name: str
+) -> dict:
     X_train = train_df[features].copy()
     y_train = train_df["PercentOverLimit"].copy()
     X_test = test_df[features].copy()
@@ -159,15 +159,25 @@ def fit_score(train_df: pd.DataFrame, test_df: pd.DataFrame, features: list[str]
     else:
         raise ValueError(model_name)
 
-    pipeline = Pipeline(steps=[("preprocess", make_preprocessor(features)), ("model", estimator)])
+    pipeline = Pipeline(
+        steps=[("preprocess", make_preprocessor(features)), ("model", estimator)]
+    )
     pipeline.fit(X_train, y_train)
     preds = pipeline.predict(X_test)
     return evaluate(y_test, preds)
 
 
-def compare_random_split(df: pd.DataFrame, features: list[str], model_name: str, random_state: int, test_size: float) -> dict:
+def compare_random_split(
+    df: pd.DataFrame,
+    features: list[str],
+    model_name: str,
+    random_state: int,
+    test_size: float,
+) -> dict:
     work = df.dropna(subset=["PercentOverLimit"] + features).copy()
-    train_df, test_df = train_test_split(work, test_size=test_size, random_state=random_state)
+    train_df, test_df = train_test_split(
+        work, test_size=test_size, random_state=random_state
+    )
     metrics = fit_score(train_df, test_df, features, model_name)
     return {
         "split": "random",
@@ -181,9 +191,23 @@ def compare_random_split(df: pd.DataFrame, features: list[str], model_name: str,
     }
 
 
-def compare_spatial_split(df: pd.DataFrame, features: list[str], model_name: str, train_region: str, test_region: str) -> dict | None:
-    train_df = df[df["region"].astype(str) == train_region].dropna(subset=["PercentOverLimit"] + features).copy()
-    test_df = df[df["region"].astype(str) == test_region].dropna(subset=["PercentOverLimit"] + features).copy()
+def compare_spatial_split(
+    df: pd.DataFrame,
+    features: list[str],
+    model_name: str,
+    train_region: str,
+    test_region: str,
+) -> dict | None:
+    train_df = (
+        df[df["region"].astype(str) == train_region]
+        .dropna(subset=["PercentOverLimit"] + features)
+        .copy()
+    )
+    test_df = (
+        df[df["region"].astype(str) == test_region]
+        .dropna(subset=["PercentOverLimit"] + features)
+        .copy()
+    )
     if train_df.empty or test_df.empty:
         return None
     metrics = fit_score(train_df, test_df, features, model_name)
@@ -208,17 +232,33 @@ def build_report(report_path: Path, metrics_df: pd.DataFrame) -> None:
         "th{background:#f3f4f6}</style></head><body>"
     )
     pieces.append("<h1>RoadSense Baseline Comparison</h1>")
-    pieces.append("<p>Comparison of random-split and spatial-split performance for full vs safe feature sets.</p>")
-    pieces.append(metrics_df.to_html(index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""))
+    pieces.append(
+        "<p>Comparison of random-split and spatial-split performance for full vs safe feature sets.</p>"
+    )
+    pieces.append(
+        metrics_df.to_html(
+            index=False, float_format=lambda x: f"{x:.4f}" if pd.notna(x) else ""
+        )
+    )
     pieces.append("</body></html>")
     report_path.write_text("\n".join(pieces), encoding="utf-8")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare baseline models under random and spatial splits")
-    parser.add_argument("--input", type=Path, default=Path("RoadSense/outputs/processed_road_safety.gpkg"))
-    parser.add_argument("--output", type=Path, default=Path("reports/baseline_comparison.csv"))
-    parser.add_argument("--report", type=Path, default=Path("reports/baseline_comparison.html"))
+    parser = argparse.ArgumentParser(
+        description="Compare baseline models under random and spatial splits"
+    )
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("RoadSense/outputs/processed_road_safety.gpkg"),
+    )
+    parser.add_argument(
+        "--output", type=Path, default=Path("reports/baseline_comparison.csv")
+    )
+    parser.add_argument(
+        "--report", type=Path, default=Path("reports/baseline_comparison.html")
+    )
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--random-state", type=int, default=42)
     args = parser.parse_args()
@@ -232,9 +272,18 @@ def main():
     rows = []
     for feature_set in [FULL_FEATURES, SAFE_FEATURES]:
         for model_name in ["LinearRegression", "RandomForestRegressor"]:
-            rows.append(compare_random_split(df, feature_set, model_name, args.random_state, args.test_size))
-            for train_region, test_region in [("Thailand", "Maharashtra"), ("Maharashtra", "Thailand")]:
-                result = compare_spatial_split(df, feature_set, model_name, train_region, test_region)
+            rows.append(
+                compare_random_split(
+                    df, feature_set, model_name, args.random_state, args.test_size
+                )
+            )
+            for train_region, test_region in [
+                ("Thailand", "Maharashtra"),
+                ("Maharashtra", "Thailand"),
+            ]:
+                result = compare_spatial_split(
+                    df, feature_set, model_name, train_region, test_region
+                )
                 if result is not None:
                     rows.append(result)
 

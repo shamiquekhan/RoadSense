@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import geopandas as gpd
-import numpy as np
+import numpy as np  # noqa: F401 – used in test_data_loader via fixture
 import pytest
 from shapely.geometry import LineString
 
@@ -40,11 +40,13 @@ def sample_segments_df() -> gpd.GeoDataFrame:
 def sample_segments_roadsense() -> gpd.GeoDataFrame:
     """RoadSense-named fixture for 3-module scoring tests."""
     gdf = sample_segments_df()
-    return gdf.rename(columns={
-        "RoadClass": "functional_class",
-        "LandUse": "urban_rural",
-        "SpeedLimit": "posted_limit",
-        "F85thPercentileSpeed": "v85",
-        "SampleSize_avg": "obs_count",
-        "WeightedSample": "traffic_count",
-    })
+    return gdf.rename(
+        columns={
+            "RoadClass": "functional_class",
+            "LandUse": "urban_rural",
+            "SpeedLimit": "posted_limit",
+            "F85thPercentileSpeed": "v85",
+            "SampleSize_avg": "obs_count",
+            "WeightedSample": "traffic_count",
+        }
+    )

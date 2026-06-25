@@ -30,10 +30,13 @@ ADB_FILES: dict[str, dict[str, str | None]] = {
 }
 
 
-def load_adb_datasets(data_dir: str | Path | None = None) -> gpd.GeoDataFrame:
+def load_adb_datasets(
+    data_dir: str | Path | None = None, use_sample: bool = False
+) -> gpd.GeoDataFrame:
     """Load and merge ADB GeoPackage datasets for both regions.
 
     Tries data_dir first (primary), then the archive subdirectory (fallback).
+    When use_sample=True, skips GPKG files and loads the sample GeoJSONs instead.
     """
     data_dir = Path(data_dir) if data_dir else RAW_DATA_DIR
     archive_dir = data_dir / ".." / "Archive-20260531T145050Z-3-001" / "Archive"
@@ -44,26 +47,36 @@ def load_adb_datasets(data_dir: str | Path | None = None) -> gpd.GeoDataFrame:
         path: Path | None = None
         layer: str | None = None
 
-        # 1. Primary: data_dir / GPKG
-        primary = (data_dir / info["path"]).resolve()
-        if primary.exists():
-            path = primary
-            layer = info["layer"]
+        if use_sample:
+            # Sample GeoJSON directly (skip GPKG)
+            legacy = (legacy_dir / f"ADB_Innovation_{region}.geojson").resolve()
+            if legacy.exists():
+                path = legacy
+                logger.info(f"  {region}: using sample GeoJSON (--use-sample)")
+            else:
+                logger.warning(f"Missing sample GeoJSON for {region} at {legacy}")
+                continue
         else:
-            # 2. Fallback: archive directory
-            ap = (archive_dir / info["path"]).resolve()
-            if ap.exists():
-                path = ap
+            # 1. Primary: data_dir / GPKG
+            primary = (data_dir / info["path"]).resolve()
+            if primary.exists():
+                path = primary
                 layer = info["layer"]
             else:
-                # 3. Last resort: original GeoJSON
-                legacy = (legacy_dir / f"ADB_Innovation_{region}.geojson").resolve()
-                if legacy.exists():
-                    path = legacy
-                    logger.info(f"  {region}: using sample GeoJSON")
+                # 2. Fallback: archive directory
+                ap = (archive_dir / info["path"]).resolve()
+                if ap.exists():
+                    path = ap
+                    layer = info["layer"]
                 else:
-                    logger.warning(f"Missing ADB data file for {region}")
-                    continue
+                    # 3. Last resort: original GeoJSON
+                    legacy = (legacy_dir / f"ADB_Innovation_{region}.geojson").resolve()
+                    if legacy.exists():
+                        path = legacy
+                        logger.info(f"  {region}: using sample GeoJSON")
+                    else:
+                        logger.warning(f"Missing ADB data file for {region}")
+                        continue
 
         kwargs = {}
         if layer:
@@ -110,7 +123,9 @@ def _assign_segment_id(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 def _merge_datasets(gdfs: list[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
     common = list(set.intersection(*[set(g.columns) for g in gdfs]))
-    merged = pd.concat([g[[c for c in common if c in g.columns]] for g in gdfs], ignore_index=True)
+    merged = pd.concat(
+        [g[[c for c in common if c in g.columns]] for g in gdfs], ignore_index=True
+    )
     if "geometry" in merged.columns:
         merged = gpd.GeoDataFrame(merged, geometry="geometry", crs=MASTER_CRS)
     return merged
@@ -145,14 +160,18 @@ def clean_adb(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     before = len(df)
     if "SampleSize_avg" in df.columns:
         df = df[df["SampleSize_avg"] >= MIN_SAMPLE_SIZE]
-    logger.info(f"  SampleSize >= {MIN_SAMPLE_SIZE}: {len(df)} (dropped {before - len(df)})")
+    logger.info(
+        f"  SampleSize >= {MIN_SAMPLE_SIZE}: {len(df)} (dropped {before - len(df)})"
+    )
 
     df = _fix_string_columns(df)
     df = _fix_speed_limit(df)
     df = _clip_bounded_fields(df)
     df = _ensure_shape_length(df)
 
-    df.dropna(subset=["MedianSpeed", "F85thPercentileSpeed", "PercentOverLimit"], inplace=True)
+    df.dropna(
+        subset=["MedianSpeed", "F85thPercentileSpeed", "PercentOverLimit"], inplace=True
+    )
 
     before = len(df)
     if "F85thPercentileSpeed" in df.columns:
@@ -223,8 +242,10 @@ def map_to_roadsense_schema(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return df
 
 
-def load_and_clean(data_dir: str | Path | None = None) -> gpd.GeoDataFrame:
+def load_and_clean(
+    data_dir: str | Path | None = None, use_sample: bool = False
+) -> gpd.GeoDataFrame:
     """One-shot: load ADB data + clean."""
-    df = load_adb_datasets(data_dir)
+    df = load_adb_datasets(data_dir, use_sample=use_sample)
     df = clean_adb(df)
     return df

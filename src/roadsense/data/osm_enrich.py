@@ -22,9 +22,21 @@ from shapely.geometry import Point
 # ── POI tag definitions ──────────────────────────────────────────────
 # Each entry maps to a column on the enriched output.
 POI_DEFINITIONS: dict[str, list[dict[str, str]]] = {
-    "school_count": [{"amenity": "school"}, {"amenity": "university"}, {"amenity": "college"}],
-    "clinic_count": [{"amenity": "clinic"}, {"amenity": "hospital"}, {"amenity": "doctors"}],
-    "market_count": [{"amenity": "marketplace"}, {"shop": "supermarket"}, {"shop": "mall"}],
+    "school_count": [
+        {"amenity": "school"},
+        {"amenity": "university"},
+        {"amenity": "college"},
+    ],
+    "clinic_count": [
+        {"amenity": "clinic"},
+        {"amenity": "hospital"},
+        {"amenity": "doctors"},
+    ],
+    "market_count": [
+        {"amenity": "marketplace"},
+        {"shop": "supermarket"},
+        {"shop": "mall"},
+    ],
     "bus_stop_count": [{"highway": "bus_stop"}, {"amenity": "bus_station"}],
 }
 
@@ -32,8 +44,16 @@ BUFFER_METERS: int = 200
 
 # ── pyrosm tag filters ───────────────────────────────────────────────
 PYROSM_FILTERS: dict[str, Any] = {
-    "amenity": ["school", "university", "college", "clinic", "hospital",
-                "doctors", "marketplace", "bus_station"],
+    "amenity": [
+        "school",
+        "university",
+        "college",
+        "clinic",
+        "hospital",
+        "doctors",
+        "marketplace",
+        "bus_station",
+    ],
     "shop": ["supermarket", "mall"],
     "highway": ["bus_stop"],
 }
@@ -49,7 +69,7 @@ def _build_overpass_query(lat: float, lon: float, radius: int) -> str:
     for variants in POI_DEFINITIONS.values():
         for v in variants:
             for k, val in v.items():
-                tags.append(f'node[{k}={val}](around:{radius},{lat},{lon});')
+                tags.append(f"node[{k}={val}](around:{radius},{lat},{lon});")
     return f"[out:json];({''.join(tags)});out count;"
 
 
@@ -143,7 +163,9 @@ def enrich_with_osm_pois(
         cache_file.write_text(json.dumps(cache, indent=2), encoding="utf-8")
         logger.info(f"Saved {len(cache)} OSM lookups to cache")
 
-    logger.info(f"OSM enrichment complete. Mean POIs per segment: {gdf['poi_count'].mean():.1f}")
+    logger.info(
+        f"OSM enrichment complete. Mean POIs per segment: {gdf['poi_count'].mean():.1f}"
+    )
     return gdf
 
 
@@ -188,13 +210,17 @@ def extract_pois_pyrosm(pbf_path: str | Path) -> gpd.GeoDataFrame:
     pois = osm.get_pois(custom_filter=PYROSM_FILTERS)
     if pois is None or pois.empty:
         logger.warning(f"No POIs found in {pbf_path}")
-        return gpd.GeoDataFrame(columns=["geometry"], geometry="geometry", crs="EPSG:4326")
+        return gpd.GeoDataFrame(
+            columns=["geometry"], geometry="geometry", crs="EPSG:4326"
+        )
     pois = pois.to_crs("EPSG:4326")
     logger.info(f"  Extracted {len(pois)} POIs from {Path(pbf_path).name}")
     return pois
 
 
-def _classify_pois(pois: gpd.GeoDataFrame, tags: dict[str, list[dict[str, str]]]) -> gpd.GeoDataFrame:
+def _classify_pois(
+    pois: gpd.GeoDataFrame, tags: dict[str, list[dict[str, str]]]
+) -> gpd.GeoDataFrame:
     """Add per-category boolean columns to a POI GeoDataFrame."""
     for cat_name, variants in tags.items():
         mask = pd.Series(False, index=pois.index)
@@ -256,7 +282,10 @@ def enrich_with_pyrosm(
         cat_pois_proj["_dummy"] = 1
 
         joined = gpd.sjoin(
-            buffered, cat_pois_proj, how="left", predicate="intersects",
+            buffered,
+            cat_pois_proj,
+            how="left",
+            predicate="intersects",
         )
         counts = joined.groupby(joined.index)["_dummy"].sum()
         gdf[cat_name] = counts.reindex(gdf.index, fill_value=0).astype(int)
@@ -273,9 +302,11 @@ def _finalise_enrichment(
 
     school_pct = gdf["near_school"].mean() * 100
     market_pct = gdf["near_market"].mean() * 100
-    logger.info(f"pyrosm enrichment complete. "
-                f"Segments near schools: {school_pct:.1f}%, "
-                f"near markets: {market_pct:.1f}%")
+    logger.info(
+        f"pyrosm enrichment complete. "
+        f"Segments near schools: {school_pct:.1f}%, "
+        f"near markets: {market_pct:.1f}%"
+    )
     return gdf
 
 
@@ -283,18 +314,42 @@ def _finalise_enrichment(
 # Overrides GRUMP classification when OSM built-area data is available.
 
 URBAN_LAND_USE: set[str] = {
-    "residential", "commercial", "retail", "industrial",
-    "mixed", "institutional", "religious", "cemetery",
-    "construction", "brownfield", "depot", "garages",
-    "hospital", "school", "university", "college",
-    "recreation_ground", "village_green",
+    "residential",
+    "commercial",
+    "retail",
+    "industrial",
+    "mixed",
+    "institutional",
+    "religious",
+    "cemetery",
+    "construction",
+    "brownfield",
+    "depot",
+    "garages",
+    "hospital",
+    "school",
+    "university",
+    "college",
+    "recreation_ground",
+    "village_green",
 }
 
 RURAL_LAND_USE: set[str] = {
-    "farmland", "farmyard", "forest", "meadow", "orchard",
-    "vineyard", "scrub", "grass", "heath", "wood",
-    "plant_nursery", "greenhouse_horticulture",
-    "aquaculture", "salt_pond", "quarry",
+    "farmland",
+    "farmyard",
+    "forest",
+    "meadow",
+    "orchard",
+    "vineyard",
+    "scrub",
+    "grass",
+    "heath",
+    "wood",
+    "plant_nursery",
+    "greenhouse_horticulture",
+    "aquaculture",
+    "salt_pond",
+    "quarry",
 }
 
 
@@ -306,14 +361,20 @@ def extract_land_use_pyrosm(pbf_path: str | Path) -> gpd.GeoDataFrame:
     landuse = osm.get_landuse()
     if landuse is None or landuse.empty:
         logger.warning(f"No land use polygons found in {pbf_path}")
-        return gpd.GeoDataFrame(columns=["geometry", "landuse"], geometry="geometry", crs="EPSG:4326")
+        return gpd.GeoDataFrame(
+            columns=["geometry", "landuse"], geometry="geometry", crs="EPSG:4326"
+        )
 
     landuse = landuse.to_crs("EPSG:4326")
-    lu_col = next((c for c in ["landuse", "land_use", "LU"] if c in landuse.columns), None)
+    lu_col = next(
+        (c for c in ["landuse", "land_use", "LU"] if c in landuse.columns), None
+    )
     if lu_col:
         landuse["landuse"] = landuse[lu_col].astype(str).str.lower().str.strip()
     landuse = landuse[landuse["landuse"].isin(URBAN_LAND_USE | RURAL_LAND_USE)].copy()
-    logger.info(f"  Extracted {len(landuse)} land use polygons from {Path(pbf_path).name}")
+    logger.info(
+        f"  Extracted {len(landuse)} land use polygons from {Path(pbf_path).name}"
+    )
     return landuse
 
 
@@ -346,7 +407,9 @@ def improve_urban_classification(
 
     landuse = pd.concat(all_landuse, ignore_index=True)
     landuse_proj = landuse.to_crs("EPSG:3857")
-    landuse_proj["urban_flag"] = landuse_proj["landuse"].isin(URBAN_LAND_USE).astype(int)
+    landuse_proj["urban_flag"] = (
+        landuse_proj["landuse"].isin(URBAN_LAND_USE).astype(int)
+    )
 
     gdf_proj = gdf.to_crs("EPSG:3857")
     buffered = gdf_proj[["geometry"]].copy()
@@ -374,6 +437,8 @@ def improve_urban_classification(
         gdf.at[idx, "urban_classification_confidence"] = round(confidence, 2)
 
     changed = (gdf["urban_source"] == "OSM").sum()
-    logger.info(f"Urban classification improved: {changed}/{len(gdf)} segments "
-                f"reclassified from GRUMP via OSM land use")
+    logger.info(
+        f"Urban classification improved: {changed}/{len(gdf)} segments "
+        f"reclassified from GRUMP via OSM land use"
+    )
     return gdf

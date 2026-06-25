@@ -20,25 +20,20 @@ RoadSense analyzes 14,793 road segments across Thailand and Maharashtra using GP
 
 ## 2. Methodology Overview
 
-RoadSense implements two independent scoring approaches for cross-validation:
+RoadSense evaluates speed safety using two complementary approaches:
 
 ### 4-Component Composite Score
-
-Four weighted factors per segment:
-
-| Component | Weight | What it measures |
-|---|---|---|
-| Limit Misalignment | 30% | How far the posted limit exceeds Safe System recommendations |
-| Operating Speed Risk | 30% | How far actual traffic (85th percentile speed) exceeds Safe System thresholds |
-| VRU Exposure | 25% | Pedestrian fatality risk × road class / land use exposure |
-| Traffic Volume | 15% | Normalised traffic volume percentile |
+Computes a weighted average of four risk factors:
+- **Limit Misalignment (30%):** Excess posted speed limit above Safe System recommendations.
+- **Operating Speed Risk (30%):** Excess operating speed (85th percentile) above Safe System thresholds.
+- **VRU Exposure (25%):** Pedestrian fatality risk calibrated to operating speed and POI proximity.
+- **Traffic Volume (15%):** Normalized traffic volume percentile.
 
 ### 3-Module RoadSense Score
-
-Three modules at equal weights (35%, 35%, 30%):
-- **Module A — Speed Alignment:** Average of limit gap and operating speed gap
-- **Module B — VRU Exposure:** Land use, road class, speed risk, and powered two-wheeler context
-- **Module C — Road Environment:** Infrastructure gap proxy based on road class/land use, plus speed mismatch penalty
+A modular index grouping risk by context:
+- **Module A — Speed Alignment (35%):** Combines limit misalignment and operating speed risk.
+- **Module B — VRU Exposure (35%):** Models pedestrian, cyclist, and powered two-wheeler exposure.
+- **Module C — Road Environment (30%):** Captures static infrastructure gap proxy and speed mismatch.
 
 Both approaches produce scores in [0, 1] classified into four tiers:
 
@@ -96,32 +91,19 @@ The 3-module approach produces broadly consistent rankings (correlation >0.85 wi
 ## 4. Policy Recommendations
 
 ### 4.1 Immediate Priorities (Critical Tier — 11,445 km)
-
-1. **Audit posted speed limits** on all Critical segments. Many carry limits 20–40 km/h above Safe System recommendations. Lowering limits to Safe System levels is the fastest, lowest-cost intervention available.
-
-2. **Deploy traffic calming** on secondary urban roads with operating speeds >50 km/h. Speed humps, raised crossings, and lane narrowing can reduce speeds by 10–15 km/h with minimal infrastructure cost.
-
-3. **Prioritize crossings for pedestrians** at VRU-critical segments near schools and markets. Marked crossings, pedestrian refuges, and signalised crossings at 500 m intervals in urban areas.
+1. **Audit Speed Limits:** Lower posted limits on Critical segments to align with Safe System guidelines. Many current limits are 20–40 km/h too high.
+2. **Deploy Traffic Calming:** Install speed humps, raised crossings, and chicanes on secondary urban roads with speeds >50 km/h.
+3. **Enhance Pedestrian Infrastructure:** Build marked crossings and pedestrian refuges on high-exposure segments near schools and markets.
 
 ### 4.2 Medium-Term Actions (High Tier — 19,313 km)
+4. **Reclassify Road Hierarchies:** Re-align speed limits where road function (e.g., local access) conflicts with high classification limits.
+5. **Target Enforcement:** Deploy automated speed cameras at segments where operating speeds exceed limits by >15 km/h.
+6. **Update Design Standards:** Mandate protected pedestrian walkways and bike lanes during reconstruction of high-VRU segments.
 
-4. **Reclassify road hierarchies** where the posted limit and road function are mismatched. A road that functions as a local access street but carries a 60 km/h primary road limit should be reclassified.
-
-5. **Strengthen enforcement** at locations where operating speeds consistently exceed posted limits by >15 km/h. Automated speed cameras at high-risk urban primary roads.
-
-6. **Integrate VRU risk into road design standards.** Current design standards in both countries prioritise vehicle throughput over pedestrian safety. Segments flagged as high-VRU should trigger protected pedestrian infrastructure in any redesign.
-
-### 4.3 Systemic Changes
-
-7. **Adopt Safe System speed limits as the national default.** Move from case-by-case speed limit setting to context-based defaults (e.g., all urban secondary roads default to 30 km/h unless a formal assessment justifies higher).
-
-8. **Build a data-driven speed management program.** The RoadSense pipeline can be run quarterly to track changes, evaluate interventions, and update priorities. A national road safety observatory could host this as a live dashboard.
-
-9. **Expand data collection** to include:
-   - Dedicated pedestrian and cyclist counts at VRU-critical locations
-   - Street-level imagery collection (Mapillary or similar) for infrastructure gap validation
-   - Crash data (currently not used in scoring but essential for outcome validation)
-
+### 4.3 Systemic Reforms
+7. **Default Context Limits:** Adopt Safe System speeds as national defaults (e.g., 30 km/h for urban secondary roads) to shift the burden of proof.
+8. **Institutionalise Tracking:** Run the RoadSense pipeline quarterly to track safety improvements and target resources.
+9. **Expand Datasets:** Gather crash records, pedestrian counts, and street imagery to validate and refine the scoring model.
 ---
 
 ## 5. Replication in Data-Scarce Countries

@@ -54,10 +54,10 @@ def sensitivity_analysis(
     config: dict = {}
     if config_path and Path(config_path).exists():
         config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
-    sss_weights = config.get("sss", {"module_a": 0.35, "module_b": 0.35, "module_c": 0.30})
-    weights = {
-        k: float(sss_weights[k]) for k in ["module_a", "module_b", "module_c"]
-    }
+    sss_weights = config.get(
+        "sss", {"module_a": 0.35, "module_b": 0.35, "module_c": 0.30}
+    )
+    weights = {k: float(sss_weights[k]) for k in ["module_a", "module_b", "module_c"]}
 
     base = (
         weights["module_a"] * gdf["A_score"]
@@ -79,10 +79,12 @@ def sensitivity_analysis(
             )
             top = set(gdf.assign(_s=scores).nlargest(n, "_s")["segment_id"])
             overlap = len(base_top & top) / n
-            results.append({
-                "perturbation": f"{mod} x{direction:.2f}",
-                "top_n_stability": round(overlap, 3),
-            })
+            results.append(
+                {
+                    "perturbation": f"{mod} x{direction:.2f}",
+                    "top_n_stability": round(overlap, 3),
+                }
+            )
 
     mean_stab = float(np.mean([r["top_n_stability"] for r in results]))
     return {"results": results, "mean_stability": round(mean_stab, 3)}
@@ -129,6 +131,7 @@ def benchmark_validation(
 
     try:
         import json
+
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
         return {"error": f"Invalid benchmark JSON: {exc}"}
@@ -150,19 +153,30 @@ def benchmark_validation(
             continue
         row = match.iloc[0]
         known = str(bm.get("known_risk", "")).lower() in {"high", "critical"}
-        predicted = str(row.get(tier_col, "")).lower() in {"high", "critical", "high — priority review", "critical — immediate review"}
-        results.append({
-            "segment_id": sid,
-            "known_risk": bm.get("known_risk", ""),
-            sss_col: round(float(row.get(sss_col, 0)), 3),
-            "predicted_tier": row.get(tier_col, ""),
-            "correct": known == predicted,
-        })
+        predicted = str(row.get(tier_col, "")).lower() in {
+            "high",
+            "critical",
+            "high — priority review",
+            "critical — immediate review",
+        }
+        results.append(
+            {
+                "segment_id": sid,
+                "known_risk": bm.get("known_risk", ""),
+                sss_col: round(float(row.get(sss_col, 0)), 3),
+                "predicted_tier": row.get(tier_col, ""),
+                "correct": known == predicted,
+            }
+        )
 
     if not results:
         return {"error": "No matching benchmark segments found"}
     accuracy = sum(1 for r in results if r["correct"]) / len(results)
-    return {"accuracy": round(float(accuracy), 3), "n_segments": len(results), "details": results}
+    return {
+        "accuracy": round(float(accuracy), 3),
+        "n_segments": len(results),
+        "details": results,
+    }
 
 
 def full_evaluation(

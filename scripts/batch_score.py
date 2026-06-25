@@ -22,10 +22,14 @@ from roadsense.config import RAW_DATA_DIR, OUTPUT_DIR
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run RoadSense scoring pipeline.")
     parser.add_argument(
-        "--approach", choices=["4component", "roadsense", "both"],
-        default="both", help="Scoring approach to use"
+        "--approach",
+        choices=["4component", "roadsense", "both"],
+        default="both",
+        help="Scoring approach to use",
     )
-    parser.add_argument("--data-dir", default=str(RAW_DATA_DIR), help="Path to raw ADB data")
+    parser.add_argument(
+        "--data-dir", default=str(RAW_DATA_DIR), help="Path to raw ADB data"
+    )
     parser.add_argument("--out-dir", default=str(OUTPUT_DIR), help="Output directory")
     args = parser.parse_args()
 
