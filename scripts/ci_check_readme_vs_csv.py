@@ -12,8 +12,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CSV_PATH = ROOT / "reports" / "baseline_comparison.csv"
-README_PATH = ROOT / "RoadSense" / "README.md"
+CSV_PATH = ROOT / "outputs" / "network_kpis.csv"
+README_PATH = ROOT / "README.md"
 
 
 def load_csv_metrics(csv_path):

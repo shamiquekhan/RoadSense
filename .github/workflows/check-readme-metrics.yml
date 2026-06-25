@@ -3,13 +3,13 @@ name: Check README metrics
 on:
   push:
     paths:
-      - 'reports/baseline_comparison.csv'
-      - 'RoadSense/README.md'
+      - 'outputs/network_kpis.csv'
+      - 'README.md'
       - '.github/workflows/**'
   pull_request:
     paths:
-      - 'reports/baseline_comparison.csv'
-      - 'RoadSense/README.md'
+      - 'outputs/network_kpis.csv'
+      - 'README.md'
 
 jobs:
   validate:

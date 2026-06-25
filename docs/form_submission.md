@@ -117,7 +117,7 @@ A minimal deployment requires only an OSM road network, speed limit tags, and an
 
 ### Findings Summary
 
-See full 5-page Word document: https://github.com/shamiquekhan/RoadSense/blob/main/docs/findings_summary.docx
+See full 4-page Word document: https://github.com/shamiquekhan/RoadSense/blob/main/docs/findings_summary.docx
 
 Key findings:
 - **12.2% of the network (11,445 km) is Critical.** These segments need immediate Safe System intervention.

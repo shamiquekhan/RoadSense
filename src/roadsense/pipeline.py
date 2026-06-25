@@ -386,8 +386,8 @@ def _export(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:
             .reset_index()
         )
         summary.to_csv(kpi_path, index=False)
-    except Exception:
-        pass  # KPI export is best-effort
+    except Exception as exc:
+        logger.warning(f"KPI export skipped: {exc}")
 
 
 def _save_evaluation(df: gpd.GeoDataFrame, out_dir: Path, prefix: str) -> None:

@@ -61,7 +61,7 @@ Both approaches classify segments into four risk tiers:
 
 ## Setup
 
-Requires Python 3.10+.
+Requires Python 3.11+.
 
 ```bash
 # Create a virtual environment
